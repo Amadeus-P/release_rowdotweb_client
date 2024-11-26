@@ -1,0 +1,22 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt --host",
+    "start": "nuxt start -p 3007",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "decode": "^0.3.0",
+    "jwt-decode": "^4.0.0",
+    "nuxt": "^3.13.2",
+    "nuxt-app": "file:",
+    "vue": "latest",
+    "vue-router": "latest",
+    "vue3-google-login": "^2.0.33"
+  }
+}

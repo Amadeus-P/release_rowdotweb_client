@@ -1,0 +1,430 @@
+/* 작은 아이콘에 대한 이미지 경로 추가 */
+.icon\:category-small::before{
+    mask-image: url("../img/icon/tag.svg"); 
+}
+.icon\:views-small::before{
+    mask-image: url("../img/icon/views.svg");
+}
+.icon\:close-small::before{
+    mask-image: url("../img/icon/close.svg");
+}
+.icon\:more-small::before{
+    mask-image: url("../img/icon/more_vert.svg");
+}
+.icon\:like-small::before{
+    mask-image: url("../img/icon/thumb_up.svg");
+}
+.icon\:liked-small::before{
+    mask-image: url("../img/icon/liked.svg");
+}
+.icon\:dislike-small::before{
+    mask-image: url("../img/icon/thumb_down.svg"); 
+}
+.icon\:disliked-small::before{
+    mask-image: url("../img/icon/disliked.svg"); 
+}
+.icon\:comment-small::before{
+    mask-image: url("../img/icon/comment.svg");
+}
+.icon\:arrow-down-small::before{
+    mask-image: url("../img/icon/arrow_down.svg"); 
+}
+.icon\:arrow-forward-small::before{
+    mask-image: url("../img/icon/arrow_forward.svg");
+}
+.icon\:copy-small::before{
+    mask-image: url("../img/icon/copy.svg");
+}
+
+/* 아이콘 경로 */
+.icon\:bookmark-add::before{
+    mask-image: url('../img/icon/bookmark_add.svg');
+}
+.icon\:bookmark-added::before{
+    mask-image: url('../img/icon/bookmark_added.svg');
+}
+.icon\:search::before{
+    mask-image: url("../img/icon/search.svg");
+}
+.icon\:home::before{
+    mask-image: url("../img/icon/home.svg");
+}
+.icon\:add::before{
+    mask-image: url("../img/icon/add.svg");
+}
+.icon\:profile::before{
+    mask-image: url("../img/icon/account_circle.svg");
+}
+.icon\:menu::before{
+    mask-image: url("../img/icon/menu.svg");
+}
+.icon\:settings::before{
+    mask-image: url("../img/icon/settings.svg");
+}
+.icon\:category::before{
+    mask-image: url("../img/icon/tag.svg");
+}
+.icon\:views::before{
+    mask-image: url("../img/icon/views.svg");
+}
+.icon\:close::before{
+    mask-image: url("../img/icon/close.svg");
+}
+.icon\:more::before{
+    mask-image: url("../img/icon/more_vert.svg");
+}
+.icon\:more-small::before{
+    mask-image: url("../img/icon/more_vert.svg");
+}
+.icon\:more-big::before{
+    mask-image: url("../img/icon/more_vert.svg");
+}
+.icon\:arrow-back::before{
+    mask-image: url("../img/icon/arrow_back.svg");
+}
+.icon\:arrow-forward::before{
+    mask-image: url("../img/icon/arrow_forward.svg");
+}
+.icon\:goback::before{
+    mask-image: url("../img/icon/goback.svg");
+}
+.icon\:like::before{
+    mask-image: url("../img/icon/thumb_up.svg");
+}
+.icon\:liked::before{
+    mask-image: url("../img/icon/liked.svg");
+}
+.icon\:dislike::before{
+    mask-image: url("../img/icon/thumb_down.svg");
+}
+.icon\:disliked::before{
+    mask-image: url("../img/icon/disliked.svg");
+}
+.icon\:comment::before{
+    mask-image: url("../img/icon/comment.svg");
+}
+.icon\:arrow-down::before{
+    mask-image: url("../img/icon/arrow_down.svg");
+}
+.icon\:notification::before{
+    mask-image: url("../img/icon/notification.svg");
+}
+.icon\:copy::before{
+    mask-image: url("../img/icon/copy.svg");
+}
+
+/* 아이콘 기본 공통 스타일 */
+:is(
+        .icon\:search,
+        .icon\:home,
+        .icon\:add,
+        .icon\:profile,
+        .icon\:category,
+        .icon\:views,
+        .icon\:close,
+        .icon\:menu,
+        .icon\:settings,
+        .icon\:more,
+        .icon\:like,
+        .icon\:liked,
+        .icon\:dislike,
+        .icon\:disliked,
+        .icon\:comment,
+        .icon\:arrow-back,
+        .icon\:goback::before,
+        .icon\:arrow-down,
+        .icon\:arrow-forward,
+        .icon\:notification,
+        .icon\:copy,
+        .icon\:bookmark-add,
+        .icon\:bookmark-added
+        )::before{
+    content: "";
+
+    display: flex;
+    width: var(--icon-width-3);
+    height: var(--icon-height-3);
+
+    mask-repeat: no-repeat;
+    mask-size: var(--icon-width-3) var(--icon-height-3);
+    background-color: var(--base-color-black);
+}
+
+/* 작은 아이콘 공통 스타일 */
+:is(
+        .icon\:category-small,
+        .icon\:views-small,
+        .icon\:close-small,
+        .icon\:more-small,
+        .icon\:like-small,
+        .icon\:dislike-small,
+        .icon\:comment-small,
+        .icon\:arrow-down-small,
+        .icon\:arrow-forward-small,
+        .icon\:copy-small
+        )::before{
+            
+            content: "";
+            display: flex;
+            width: var(--icon-width-2);
+            height: var(--icon-height-2);
+            mask-repeat: no-repeat;
+
+            mask-size: var(--icon-width-2) var(--icon-height-2);
+            background-color: var(--base-color-black);
+}
+
+/* 큰 아이콘 공통 스타일 */
+:is(
+    .icon\:arrow-back-big,
+    .icon\:more-big
+)::before{
+    content: "";
+    display: flex;
+    mask-repeat: no-repeat;
+
+    width: var(--icon-width-4);
+    height: var(--icon-height-4);
+    mask-size: var(--icon-width-4) var(--icon-height-4);
+    background-color: var(--base-color-black);
+}
+
+
+/* 아이콘 개별 스타일 */
+.icon\:search{
+    /* text-indent */
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+:is(.icon\:liked, .icon\:disliked)::before{
+background-color: #c60072;
+}
+
+:is(
+        .icon\:home,
+        .icon\:add,
+        .icon\:profile
+        ){
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 아이콘 기능 적용 */
+:is(
+        .icon\:menu-small,
+        .icon\:settings-small,
+        .icon\:arrow-back-small,
+        .icon\:close-small,
+        .icon\:category-small,
+        .icon\:views-small,
+        .icon\:more-small,
+        .icon\:like-small,
+        .icon\:dislike-small,
+        .icon\:comment-small,
+        .icon\:arrow-down-small,
+        .icon\:arrow-forward-small,
+        .icon\:notification-small,
+        .icon\:copy-small
+        ) {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+:is(
+        .icon\:menu,
+        .icon\:settings,
+        .icon\:goback,
+        .icon\:close,
+        
+        .icon\:category,
+        .icon\:views,
+        .icon\:like,
+        .icon\:dislike,
+        .icon\:comment,
+        .icon\:arrow-down,
+        .icon\:arrow-forward,
+        .icon\:arrow-back,
+        .icon\:notification,
+        .icon\:copy,
+        .icon\:bookmark-add,
+        .icon\:bookmark-added
+        ){
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+:is(
+        .icon\:menu-big,
+        .icon\:settings-big,
+        .icon\:arrow-back-big,
+        .icon\:close-big,
+        .icon\:category-big,
+        .icon\:views-big,
+        .icon\:more-big,
+        .icon\:like-big,
+        .icon\:dislike-big,
+        .icon\:comment-big,
+        .icon\:arrow-down-big,
+        .icon\:notification-big,
+        .icon\:copy-big
+        ) {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* 카테고리 아이콘 경로 */
+.icon\:ai::before {
+    mask-image: url("../img/icon/ai.svg"); 
+}
+
+.icon\:beauty::before {
+    mask-image: url("../img/icon/beauty.svg"); 
+}
+
+.icon\:computer::before {
+    mask-image: url("../img/icon/computer.svg"); 
+}
+
+.icon\:design::before {
+    mask-image: url("../img/icon/design.svg"); 
+}
+
+.icon\:draw::before {
+    mask-image: url("../img/icon/draw.svg"); 
+}
+
+.icon\:egg::before {
+    mask-image: url("../img/icon/egg.svg"); 
+}
+
+.icon\:fashion::before {
+    mask-image: url("../img/icon/fashion.svg"); 
+}
+
+.icon\:game::before {
+    mask-image: url("../img/icon/game.svg"); 
+}
+
+.icon\:music::before {
+    mask-image: url("../img/icon/music.svg"); 
+}
+
+.icon\:community::before {
+    mask-image: url("../img/icon/community.svg"); 
+}
+.icon\:pet::before {
+    mask-image: url("../img/icon/pet.svg"); 
+}
+.icon\:utility::before{
+    mask-image: url("../img/icon/utility.svg");
+}
+
+:is(
+    .icon\:ai,
+    .icon\:beauty,
+    .icon\:computer,
+    .icon\:design,
+    .icon\:draw,
+    .icon\:egg,
+    .icon\:fashion,
+    .icon\:game,
+    .icon\:music,
+    .icon\:community,
+    .icon\:pet,
+    .icon\:utility
+)::before{
+    content: "";
+
+    display: flex;
+    width: var(--icon-width-3);
+    height: var(--icon-height-3);
+
+    mask-repeat: no-repeat;
+    mask-size: var(--icon-width-3) var(--icon-height-3);
+    background-color: var(--base-color-3);
+}
+
+:is(
+    .icon\:ai,
+    .icon\:beauty,
+    .icon\:computer,
+    .icon\:design,
+    .icon\:draw,
+    .icon\:egg,
+    .icon\:fashion,
+    .icon\:game,
+    .icon\:music,
+    .icon\:community,
+    .icon\:pet,
+    .icon\:utility
+){
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+
+
+/* 아이콘 폰트 */
+.icon\:font-1{
+    font-size:var(--font-size-1);
+    color: var(--base-color-1);
+    text-align: center;
+}
+.icon\:font-2{
+    font-size:var(--font-size-2);
+    color: var(--base-color-1);
+    text-align: center;
+}
+.icon\:font-3{
+    font-size:var(--font-size-3);
+    color: var(--base-color-1);
+    text-align: center;
+}
+.icon\:font-4{
+    font-size:var(--font-size-4);
+    color: var(--base-color-1);
+    text-align: center;
+}
+.icon\:font-5{
+    font-size:var(--font-size-5);
+    color: var(--base-color-1);
+    text-align: center;
+}
+/* 아이콘의 텍스트 위치 */
+.icon\:text-top,
+.icon\:text-bottom{
+    display: flex; /* !important; */
+    flex-direction: column; /* !important; */  /* main 축 바꿈 */
+}
+.icon\:text-left,
+.icon\:text-right{
+    display: flex; /* !important; */
+}
+
+.icon\:text-bottom::before,
+.icon\:text-right::before{
+    content: ""; /* !important; */
+    order: unset; /* !important; */
+}
+.icon\:text-top::before,
+.icon\:text-left::before{
+    content: "";  /* !important; */
+    order: 1; /* !important; */
+}
+
+

@@ -1,0 +1,172 @@
+.main-category{
+    scrollbar-width: none; 
+    overflow-x: auto; 
+    /* height: 50px;  */
+    margin: 0 10px 0; 
+    display: flex; 
+    flex-wrap: nowrap; 
+    align-items: center; 
+    justify-content: start; 
+    gap: 10px;
+
+    >li{
+        display: flex; 
+        justify-content: center; 
+        flex-shrink: 0; 
+        flex-grow: 1;
+    
+        >label{
+            width: 65px;
+            font-weight: var(--font-weight-6);
+
+            &:has(input:checked),
+            &.activeMain {/* .activeMain: 동적 스타일을 위한 클래스 */
+                color: var(--main-color-1);
+                transition: 0.3s;
+            }
+            &:has(input:checked):is(
+                .icon\:ai,
+                .icon\:beauty,
+                .icon\:computer,
+                .icon\:design,
+                .icon\:draw,
+                .icon\:egg,
+                .icon\:fashion,
+                .icon\:game,
+                .icon\:music,
+                .icon\:community,
+                .icon\:pet,
+                .icon\:utility
+            )::before,
+            &.activeMain:is(
+                .icon\:ai,
+                .icon\:beauty,
+                .icon\:computer,
+                .icon\:design,
+                .icon\:draw,
+                .icon\:egg,
+                .icon\:fashion,
+                .icon\:game,
+                .icon\:music,
+                .icon\:community,
+                .icon\:pet,
+                .icon\:utility
+            )::before{
+                background-color: var(--base-color-1);
+                transition: 0.3s;
+            }
+        }
+    }
+}
+.sub-category{
+    scrollbar-width: none; 
+    overflow-x: auto; 
+    display: flex; 
+    justify-content: start; 
+    align-items: center; 
+    flex-basis: 100%; 
+    gap: 2px; 
+    margin: 4px 20px; 
+
+    >li>label{
+        font-size: var(--font-size-3);
+        font-weight: var(--font-weight-4);
+
+        &:has(input:checked),
+        &.activeSub{
+            border: none;
+            color: var(--base-color-white);
+            background-color: var(--base-color-2);
+            transition: 0.3s;
+        }
+    }
+}
+.detail-category{
+    scrollbar-width: none;
+    overflow-x: auto; 
+
+    margin: 0 20px 0; 
+
+    display: flex; 
+    justify-content: start; 
+    align-items: center; 
+    gap: 10px;
+    text-wrap: nowrap;
+    >li>label{
+        font-size: var(--font-size-4);
+        font-weight: var(--font-weight-4);
+        
+        &:has(input:checked),
+        &.activeDetail{
+            border: none;
+            color: var(--base-color-white);
+            background-color: var(--base-color-2);
+            transition: 0.3s;
+        }
+    }
+}
+.filter-list{
+    margin: 5px 10px 10px; 
+    display: flex;
+    >li>label{
+        font-size: var(--font-size-3);
+        &:has(input:checked){
+            color: var(--main-color-1);
+            transition: 0.3s;
+        }
+    }
+}
+.icon\:bookmark-add{
+    position: absolute; top: 5px; right: 5px;
+    margin-left: auto;
+    color: var(--base-color-1);
+}
+.icon\:bookmark-add::before{
+    --icon-width: 34px;
+    --icon-height: 34px;
+    background-color: var(--base-color-1);
+    width: var(--icon-width);
+    height: var(--icon-height);
+    mask-size: var(--icon-width) var(--icon-height);
+}
+
+.icon\:bookmark-added{
+    position: absolute; top: 5px; right: 5px;
+    margin-left: auto;
+    color: var(--base-color-1);
+}
+.icon\:bookmark-added::before{
+    --icon-width: 34px;
+    --icon-height: 34px;
+    background-color: var(--main-color-1);
+    width: var(--icon-width);
+    height: var(--icon-height);
+    mask-size: var(--icon-width) var(--icon-height);
+}
+
+.website-content{
+    position: relative; 
+    display: flex; 
+    flex-basis: 100%; 
+    gap: 2px; 
+    flex-direction: column; 
+    padding: 5px;
+    background-color: var(--base-color-5);
+}
+
+
+/* @media screen and (width <= 768px){
+    .website-card   {
+        width: calc(100%);
+    }
+} */
+@media screen {
+    .website-card{
+        width: calc(50% - 20px);
+    }
+}
+@media screen and (1096px < width) {
+    .website-card{
+        width: calc(25% - 20px);
+    }
+}
