@@ -104,7 +104,7 @@ const submitHandler = async (e) => {
         }
         console.log('사이트 등록 성공:', result);
         // 성공적으로 등록된 후 다른 페이지로 이동하거나 상태 초기화할 수 있음
-        // return navigateTo("/member/websites");
+        return navigateTo("/member/websites");
     } catch (error) {
         console.error('에러 발생:', error);
     }
@@ -172,6 +172,7 @@ const submitHandler = async (e) => {
                                 웹사이트와관련된 이미지나 스크린샷을 올려주세요. 16: 9 비율 최대 1장 업로드
                             </span>
                             <input type="file" @change="handleFileChange" />
+                            <span class="icon:add" style="display: flex; width: 100%; height: 100%;  border: 1px solid black;"></span>
                         </label>
                     </section>
 

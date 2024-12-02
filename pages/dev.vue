@@ -1,79 +1,60 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
 
-    onMounted(() => {
-        class Book{
-            constructor(width, height, x, y) {
-                this.width = width;
-                this.height = height;
-                this.x = x;
-                this.y = y;
-                this.maxX = width + x;
-                this.maxY = height + y;
+import { ref } from 'vue';
+import draggable from 'vuedraggable';
 
-            }
-            draw(ctx) {
-                const xGap = 80;
-                const yGap = 60;
+const categories = ref([]);
 
-                ctx.fillStyle = '#2C3E50';
-                ctx.beginPath();
-                ctx.rect(this.x, this.y, this.width, this.height);
-                ctx.fill();
+const {data: categoryResponse} = await useSSRFetch("categories", {
+    params: {
+        parentId: null
+    }
+});
+    watchEffect(()=>{
 
-            }
-        }//Book
-        class App {
-            constructor() {
-                this.canvas = document.createElement('canvas');
-                this.ctx = this.canvas.getContext('2d');
-
-                document.body.appendChild(this.canvas);
-
-                window.addEventListener('resize', this.resize.bind(this), false);
-                this.resize();
-                
-                this.book = new Book(700, 30, 300, 450);
-
-                window.requestAnimationFrame(this.animate.bind(this));
-            }
-
-        resize() {
-            this.stageWidth = document.body.clientWidth;
-            this.stageHeight = document.body.clientHeight;
-
-            this.canvas.width = this.stageWidth * 1;
-            this.canvas.height = this.stageHeight * 1;
-            // this.ctx.setTransform(1, 0, 0, 1, 0, 0); // 스케일을 초기화
-            this.ctx.scale(1, 1);
-
+        if(categoryResponse.value) {
+            
+            categories.value = categoryResponse.value.categoryListDtos;
+            console.log(categoryResponse.value.categoryListDtos);
+            
+            console.log('categories', categories.value);
         }
-        animate() {
-            window.requestAnimationFrame(this.animate.bind(this));
-
-            this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-            this.book.draw(this.ctx);
-        }
-
-        }// App
+    });
 
 
-        new App();
-        
-        onUnmounted(() => {
-        window.removeEventListener('resize', appInstance.resize);
-      });
-    }); // onMount
+// export default defineComponent({
+//     components: { draggable },
+//     setup() {
+
+        // dataFetch
+        const items = ref(['Item 1', 'Item 2', 'Item 3']);
+
+        const onEnd = (event) => {
+            console.log('Drag ended:', event);
+
+            // 서버에 데이터 저장
+        };
+
+        // return { items, onEnd };
+//     },
+// });
 </script>
-<template>
-    <HeaderMenu/>
-    <h1>연습 페이지</h1>
-    
-    <main>
-        
-    </main>
-</template>
 
-<style scoped>
-        
-</style>
+<template>
+    <div>
+        <draggable v-model="categories" group="items" @end="onEnd">
+            <template #item="{ element, index }">
+                <div :key="element">
+                    {{ index + 1 }}.
+                    {{ element.name }}
+                </div>
+            </template>
+        </draggable>
+    </div>
+
+
+    <h1 class="" style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; height: 100vh;">
+                    <!-- <img style="width: 60px; " src="/img/logo/watercolor-4116932_1280.png" alt="로고"> -->
+                     <span style="font-size: 20px; font-weight: 600;">ROWDOTWEB</span>
+                </h1>
+</template>

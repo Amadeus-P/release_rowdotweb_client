@@ -94,12 +94,12 @@
             <h1>로그인 페이지</h1>
             <form @submit.prevent="localLoginHandler">
                 <label style="">
-                    <span>이메일</span>
+                    <span>이메일 <span style="color: red;" aria-label="required">*</span></span>
                     <input type="email" v-model="username" autofocus required/>
                 </label>
                 
                 <label style="position: relative;">
-                    <span>비밀번호</span>
+                    <span>비밀번호 <span style="color: red;" aria-label="required">*</span></span>
                     <input :type="isShowPassword ? 'text' : 'password'" 
                         v-model="password"
                         autocomplete="off" required/>
@@ -126,6 +126,7 @@
             <div class="btn btn-submit btn:round" style="background-color: var(--base-color-white); color: var(--base-color-black); margin-top: 20px;">
                 <NuxtLink @click.prevent="googleLoginHandler" class="submit-btn btn-style:round" style="font-size: var(--font-size-3); font-weight: var(--font-weight-6);" to="">구글 로그인</NuxtLink>
             </div> -->
+            <div class="text-hidden" style="position: relative; border: none; border-top: 1px solid var(--base-color-3); margin: 50px 0 10px 0; width: 100%;">구분선</div>
             <div style="display: flex; justify-content: center; margin-top: 20px; width: 100%;">
                 <NuxtLink class="" style="font-size: var(--font-size-3); font-weight: var(--font-weight-6); cursor: pointer;" to="/signup">회원이 아니라면</NuxtLink>
             </div>
@@ -174,10 +175,10 @@ form{
 }
 
 .icon\:hide::before{
-    mask-image: url("../img/icon/hide.svg");
+    mask-image: url("/public/img/icon/hide.svg");
 }
 .icon\:show::before{
-    mask-image: url("../img/icon/show.svg");
+    mask-image: url("/public/img/icon/show.svg");
 }
 :is(
     .icon\:show,

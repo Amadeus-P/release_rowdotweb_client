@@ -49,10 +49,10 @@ watchEffect(() => {
         console.log("최신 웹사이트: ", websites.value);
     }
     if(categoryData.value) {
-        categories.value = categoryData.value;
+        categories.value = categoryData.value.categoryListDtos;
         console.log("최신 카테고리: ", categories.value);
     }
-    mainCategories.value = categories.value.categoryListDtos;
+    mainCategories.value = categories.value;
     console.log("대분류", mainCategories.value);
 });
 
@@ -225,8 +225,9 @@ onUpdated(()=>{
         <h1>상단 메뉴</h1>
         <section class="" style="margin: 10px; display: flex; align-items: center; justify-content: space-between; flex-basis: 100%;">
             <NuxtLink to="/websites">
-                <h1 class="text-hidden" style="display: flex; flex-shrink: 0;">
-                    <img style="width: 60px; " src="/img/logo/watercolor-4116932_1280.png" alt="로고">
+                <h1 class="" style="display: flex; flex-shrink: 0;">
+                    <!-- <img style="width: 60px; " src="/img/logo/watercolor-4116932_1280.png" alt="로고"> -->
+                     <span style="font-size: 20px; font-weight: 600;">ROWDOTWEB</span>
                 </h1>
             </NuxtLink>
             <nav>
