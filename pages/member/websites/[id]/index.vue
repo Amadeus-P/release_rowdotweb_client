@@ -1,19 +1,21 @@
 <script setup>
 
-const websiteId = useRoute().params.id;
+// 상세 페이지
+const websiteId = Number(useRoute().params.id); // 문자열 "1" 을 숫자 1로 변환(타입을 맞춰야함)
+
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-
+const { likeCount, dislikeCount, fetchWebsiteActionStatus } = useWebsiteActionFetch(websiteId);
 
 const isLoading = ref(true);
 const error = ref(null);
 
 const website = ref(null);
 const member = ref(null);
-
 const comments = ref([]);
 const newComment = ref('');
 
+const actionDtos = ref([]);
 
 // 좋아요, 싫어요, 저장
 const iconItem = ref({
@@ -29,26 +31,19 @@ const websiteForm = ref({
 });
 
 try {
+    // 상세 페이지 정보 가져와
     const websiteResponse = await useCSRFetch(`member/websites/${websiteId}`);
     if (websiteResponse) {
         website.value = websiteResponse;
         console.log("websiteResponse ", websiteResponse);
         console.log("website.member.id", website.value.member.id);
-
-
     }
-    const memberResponse = await useCSRFetch(`member/websites/${website.value.member.id}`, {
-    });
+    // 이 웹사이트 등록한 사람 누구야
+    const memberResponse = await useCSRFetch(`member/websites/${website.value.member.id}`);
     if (memberResponse) {
         member.value = memberResponse;
         console.log("memberResponse", memberResponse);
     }
-    // const commentsResponse = await useCSRFetch(`comments/${websiteId}`);
-    // if (commentsResponse) {
-    //     comments.value = commentsResponse;
-    //     console.log("commentsResponse", commentsResponse);
-    // }
-
 } catch (err) {
     error.value = "데이터를 불러오는 중 오류가 발생했습니다.";
     console.error(err);
@@ -57,129 +52,92 @@ try {
 }
 // niuw
 
-const commentSubmitHandler = async (e) => {
-    e.preventDefault();
-
-    if (!newComment.value.trim()) return; // 빈 입력 방지
-
-    const formData = new FormData();
-
-    formData.append('content', websiteForm.value.content);
-    formData.append('memberId', websiteForm.value.memberId);
-    formData.append('categoryId', websiteForm.value.categoryId);
-    try {
-        const response = await $fetch(`${config.public.apiBase}/comments`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                Authorization: `Bearer ${userDetails.token.value}` // Bearer 토큰 추가
-            }
-        })
-
-        // $fetch가 응답을 JSON으로 Parcing하기때문에 response는 JSON 문자열임
-        const result = await response;
-
-        // 서버 응답 메세지와 동일하지 않을 때
-        if (result.message !== "댓글 등록 성공") {
-            console.log(response);
-            throw new Error('댓글 등록에 실패했습니다.');
-        }
-        console.log('사이트 등록 성공:', result);
-        // 성공적으로 등록된 후 다른 페이지로 이동하거나 상태 초기화할 수 있음
-        return navigateTo(`/member/websites/${websiteId}`);
-    } catch (error) {
-        console.error('에러 발생:', error);
-    }
-};
-
 // 북마크 추천 비추천 등등
 const actionHandler = async (memberId, websiteId, type) => {
+    console.log('memberId ', memberId.value); // 문자열
+    console.log('websiteId ', websiteId);
+    console.log('type', type);
+    try {
+        let isActionApplied = false;
+        // type과 같은 iconItem 객체의 속성에 접근, []: 괄호 접근법 아주 개 ㅈ같은 표현식이다.
+        const actionArray = iconItem.value[type] || [];
+        console.log('iconItem.value[type]', iconItem.value[type]);
 
-let action = "";
-console.log('memberId ', memberId.value);
-console.log('websiteId ', websiteId);
-console.log('type', type);
-try {
-    action = type;
-    console.log("action ", action);
+        // action의 id  찾기, 0(있음)  또는 -1(없음)
+        const index = actionArray.indexOf(websiteId);
+        console.log("actionArray", actionArray, index);
 
-    let isActionApplied = false;
+        if (index > -1) {
+            // 이미 북마크되어 있다면 제거
+            actionArray.splice(index, 1);
+            isActionApplied = false;
+        } else {
+            // 북마크되어 있지 않다면 추가
+            actionArray.push(websiteId);
+            isActionApplied = true;
+        }
 
-    // 해당 액션 배열 가져오기
-    const actionArray = iconItem.value[action] || [];
-    // 이미 북마크되어 있는지 확인
-    const index = actionArray.indexOf(websiteId);
-    console.log("iconItem ", iconItem.value);
+        // 업데이트된 배열을 다시 할당
+        iconItem.value[type] = actionArray;
 
-    if (index > -1) {
-        // 이미 북마크되어 있다면 제거
-        actionArray.splice(index, 1);
-        isActionApplied = false;
-    } else {
-        // 북마크되어 있지 않다면 추가
-        actionArray.push(websiteId);
-        isActionApplied = true;
-    }
-
-    // 업데이트된 배열을 다시 할당
-    iconItem.value[action] = actionArray;
-
-    // 서버로 좋아요 상태 전송
-    const response = await useCSRFetch(`member/websites/actions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${userDetails.token.value}` // Bearer 토큰 추가
-        },
-        body: {
-            memberId: memberId.value,
-            websiteId: websiteId,
-            action: action,
-            isAdded: isActionApplied
-        },
-    });
-
-    //     if (!response.ok) {
-    //          const errorText = await response.text();
-    //          throw new Error(`서버 오류: ${response.status} ${response.statusText}: ${errorText}`);
-    //      }
-    if(type == 'like') {
-        console.log(`좋아요 상태 업데이트 완료: ${websiteId}`, response.message);
-    } else if(type == 'dislike') {
-        console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
-    }
-} catch (error) {
-    console.error('상태 업데이트 중 오류:', error);
-}
-};
-
-onMounted(async() =>{
-
-// 사용자의 북마크 목록 가져오기
-try {
-    const actionResponse = await useCSRFetch(`member/websites/actions?memberId=${userDetails.id.value}`, {
-        headers: {
-            Authorization: `Bearer ${userDetails.token.value}`,
-        },
-    });
-    console.log("actionResponse ", actionResponse);
-
-    if (actionResponse && actionResponse.actionDtos) {
-        // `actionDtos`를 기반으로 `iconItem`을 업데이트
-        actionResponse.actionDtos.forEach((actionDto) => {
-            const { action, websiteId } = actionDto;
-            if (actionDto.isAdded) {
-                if (!iconItem.value[action]) {
-                    iconItem.value[action] = [];
-                }
-                iconItem.value[action].push(websiteId);
-            }
+        // 서버로 북마크/추천/비추천 상태 전송
+        const response = await useCSRFetch(`actions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userDetails.token.value}` // Bearer 토큰 추가
+            },
+            body: {
+                memberId: memberId.value,
+                websiteId: websiteId,
+                action: type,
+                isAdded: isActionApplied
+            },
         });
-        console.log('액션 목록:', iconItem.value);
+        if (type == 'like') {
+            console.log(`좋아요 상태 업데이트 완료: ${websiteId}`, response.message);
+        } else if (type == 'dislike') {
+            console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
+        }
+
+        await fetchWebsiteActionStatus();
+
+    } catch (error) {
+        console.error('상태 업데이트 중 오류:', error);
     }
-} catch (error) {
-    console.error('액션 상태 목록 가져오기 중 오류:', error);
+};
+function getLikeCount(websiteId) {
+    const dto = actionDtos.value.find((actionDto) => actionDto.websiteId === websiteId);
+    return dto ? dto.likeCount || 0 : 0;
 }
+onMounted(async () => {
+    await fetchWebsiteActionStatus();
+    try {
+        // 회원의 액션 정보를 불러옴
+        const actionResponse = await useCSRFetch(`actions/member/${userDetails.id.value}`, {
+            headers: {
+                Authorization: `Bearer ${userDetails.token.value}`,
+            },
+        });
+        console.log("actionResponse ", actionResponse);
+
+        if (actionResponse && actionResponse.actionDtos) {
+            actionDtos.value = actionResponse.actionDtos;
+            console.log('actionDtos.value', actionDtos.value);
+
+            actionDtos.value.forEach((actionDto) => {
+                const { action, websiteId } = actionDto;
+                if (actionDto.isAdded) {
+                    if (!iconItem.value[action]) {
+                        iconItem.value[action] = [];
+                    }
+                    iconItem.value[action].push(websiteId);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('액션 상태 목록 가져오기 중 오류:', error);
+    }
 
 });
 
@@ -236,16 +194,15 @@ try {
                         <button type="button" class="btn icon:font-1" style="padding: 0;"
                             :class="iconItem.like && iconItem.like.includes(websiteId) ? 'icon:liked' : 'icon:like'"
                             @click="actionHandler(userDetails.id, websiteId, 'like')">
-                            {{ 10 }}
+                            {{ likeCount }}
                         </button>
- 
                     </li>
                     <li>
                         <!-- 싫어요 버튼 -->
                         <button type="button" class="btn icon:font-1" style="padding: 0;"
                             :class="iconItem.dislike && iconItem.dislike.includes(websiteId) ? 'icon:disliked' : 'icon:dislike'"
                             @click="actionHandler(userDetails.id, websiteId, 'dislike')">
-                            {{ 10 }}
+                            {{ dislikeCount }}
                         </button>
                     </li>
                 </ul>

@@ -227,7 +227,7 @@ const actionHandler = async (memberId, websiteId, type) => {
         iconItem.value[action] = actionArray;
 
         // 서버로 액션 상태 전송
-        const response = await useCSRFetch(`member/websites/actions`, {
+        const response = await useCSRFetch(`actions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -285,7 +285,7 @@ onMounted(async () => {
 
     // 사용자의 북마크 목록 가져오기
     try {
-        const actionResponse = await useCSRFetch(`member/websites/actions?memberId=${userDetails.id.value}`, {
+        const actionResponse = await useCSRFetch(`actions/member/${userDetails.id.value}`, {
             headers: {
                 Authorization: `Bearer ${userDetails.token.value}`,
             },

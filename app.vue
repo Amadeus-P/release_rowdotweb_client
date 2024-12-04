@@ -1,3 +1,11 @@
+<script setup>
+    const userDetails = useUserDetails();
+
+    // 사용자가 이미 로그인된 상태라면 localStorage에서 불러오기
+    onMounted(() => {
+        userDetails.loadUserFromStorage();
+    });
+</script>
 <template>
         <Head>
             <Meta charset="UTF-8"/>
