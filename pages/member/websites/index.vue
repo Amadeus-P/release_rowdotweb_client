@@ -70,10 +70,10 @@ watchEffect(() => {
 
     }
     if (categoryData.value) {
-        categories.value = categoryData.value;
+        categories.value = categoryData.value.categoryListDtos;
         console.log("최신 카테고리: ", categories.value);
     }
-    mainCategories.value = categories.value.categoryListDtos;
+    mainCategories.value = categories.value;
     console.log("대분류", mainCategories.value);
 });
 
@@ -409,26 +409,26 @@ onUpdated(() => {
                 </ul>
             </nav>
 
-            <!-- <section style="display: flex; justify-content: end; gap: 5px;">
+            <section style="display: flex; justify-content: end; gap: 5px;">
                 <h1>필터</h1>
                 <ul class="vertical-bar filter-list" style="">
                     <li>
-                        <label>
-                            <input type="radio" name="filter" value="recommend" checked>추천순
+                        <label @click="showBookmarkListHandler">
+                            <input type="checkbox" name="filter" value="recommend">북마크
                         </label>
                     </li>
-                    <li>
+                    <!-- <li>
                         <label>
                             <input type="radio" name="filter" value="recommend">인기순
                         </label>
                     </li>
                     <li>
                         <label>
-                            <input type="radio" name="filter" value="recommend">최신순
+                            <input type="radio" name="filter" value="recommend">추천순
                         </label>
-                    </li>
+                    </li> -->
                 </ul>
-            </section> -->
+            </section>
 
 
             <section class="website-list" v-if="searchResults.length">

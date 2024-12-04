@@ -13,7 +13,7 @@
     <main>
         <section class="link-box" style="display: flex; flex-wrap: wrap; justify-content: center; margin: 10px;">
             <div class="user-card" style="width: 100%;">
-                <img :src="`${config.public.apiBase}members/${userDetails.profileImage.value}`" alt="프로필 사진" />
+                <img class="profile-img" :src="`${config.public.apiBase}members/${userDetails.profileImage.value}`" alt="프로필 사진" />
                 <div class="user-details">
                     <p>{{ userDetails.username}}</p>
                     <p>{{ userDetails.profileName }}</p>
@@ -21,13 +21,18 @@
                 </div>
             </div>
             <ul>
+                <li v-if="userDetails.roles.value.includes('ROLE_ADMIN')">
+                    <NuxtLink class="icon:arrow-forward icon:text-left" :to="`/admin`">
+                        관리자 페이지
+                    </NuxtLink>
+                </li>
                 <li>
-                    <NuxtLink class="icon:arrow-foward-small  icon:text-left" :to="`/member/mypage/${userDetails.id.value}`">
+                    <NuxtLink class="icon:arrow-forward icon:text-left" :to="`/member/mypage/${userDetails.id.value}/edit`">
                         회원 정보 변경
                     </NuxtLink>
                 </li>
                 <li>
-                    <NuxtLink class="icon:arrow-foward-small  icon:text-left" to="">내 기록</NuxtLink>
+                    <NuxtLink class="icon:arrow-forward icon:text-left" to="">내 기록</NuxtLink>
                 </li>
             </ul>
         </section>

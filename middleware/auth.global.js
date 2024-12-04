@@ -13,7 +13,9 @@ export default defineNuxtRouteMiddleware((to, from)=>{
         console.log("to.path", to.path);
         return navigateTo('/member/websites')
       }
-
+      if ((userDetails.token.value && to.path === '/signin') || (userDetails.token.value && to.path === '/signup')) {
+          return navigateTo('/member/websites');
+      }
       //   if (to.path.startsWith('/websites') && userDetails.token.value) {
       //     // 회원이라면 회원 전용 페이지로 리다이렉트
       //     return navigateTo('/member/websites');

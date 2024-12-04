@@ -68,6 +68,7 @@ try {
                     <span style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">{{ website.title
                         }}</span>
                 </li>
+                <li style="font-size: 24px; display: flex; justify-content: center;">{{ website.url }}</li>
                 <li style="display: flex; align-items: center;">
                     <a class="btn btn-submit btn:round" style=" font-size: var(--font-size-3);" target="_blank"
                         :href="website.url">방문하기</a>

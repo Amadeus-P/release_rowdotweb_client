@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt --host",
+    "dev": "nuxt dev --host -p 3007",
     "start": "nuxt start -p 3007",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -17,6 +17,7 @@
     "nuxt-app": "file:",
     "vue": "latest",
     "vue-router": "latest",
-    "vue3-google-login": "^2.0.33"
+    "vue3-google-login": "^2.0.33",
+    "vuedraggable": "^4.1.0"
   }
 }

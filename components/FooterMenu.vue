@@ -22,7 +22,7 @@
                     <!-- <NuxtLink v-if="userDetails.isGhost()" to="/signin" class="icon:add icon:text-bottom icon:font-1" >
                         <span class="">사이트 등록</span>
                     </NuxtLink> -->
-                    <NuxtLink to="/member/new" class="icon:add icon:text-bottom icon:font-1" >
+                    <NuxtLink to="/member/websites/new" class="icon:add icon:text-bottom icon:font-1" >
                         <span class="">사이트 등록</span>
                     </NuxtLink>
                     

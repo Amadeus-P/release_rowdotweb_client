@@ -78,12 +78,13 @@
             <h1>회원가입 페이지</h1>
             <form @submit.prevent="signupHandler">
                 <label style="">
-                    <span>이메일</span>
+                    <span>이메일 <span style="color: red;" aria-label="required">*</span></span>
                     <input type="email" name="username" v-model="username" placeholder="예시) wiwst@gmail.com" autofocus autocomplete="off" required/>
                 </label>
+                <span>이메일 인증</span>
                 
                 <label style="position: relative;">
-                    <span>비밀번호</span>
+                    <span>비밀번호 <span style="color: red;" aria-label="required">*</span></span>
                     <input :type="isShowPassword ? 'text' : 'password'" 
                         v-model="password" name="password" pattern="^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,20}$"
                         placeholder="12~20자의 영어, 숫자, 특수문자 포함" autocomplete="off" required/>
@@ -96,7 +97,7 @@
                 </label>
                 
                 <label style="position: relative;">
-                    <span>비밀번호 확인</span>
+                    <span>비밀번호 확인 <span style="color: red;" aria-label="required">*</span></span>
                     <input class="passwordCheck" 
                         :type="isShowPasswordCheck? 'text' : 'password'" 
                         v-model="passwordCheck" name="password" autocomplete="off" required/>
@@ -115,7 +116,6 @@
             </form>
             <div style="position: relative; border: none; border-top: 1px solid var(--base-color-3); margin: 50px 0 10px 0; width: 100%;">
                 <div style="position: absolute; top: -0.7em; left: 50%; transform: translateX(-50%); background: white; padding: 0 5px;">다른 계정으로 회원가입</div>
-                
             </div>
             <div style="display: flex; justify-content: center; margin-top: 20px; width: 100%;">
                 <NuxtLink class="" style="font-size: var(--font-size-3); font-weight: var(--font-weight-6);" to="/signin">이미 회원이라면</NuxtLink>
