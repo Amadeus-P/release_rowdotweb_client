@@ -1,13 +1,20 @@
 export default function useWebsiteActionFetch() {
+    const config = useRuntimeConfig();
     const userDetails = useUserDetails();
     const likeCount = ref(0);
     const dislikeCount = ref(0);
     const rate = ref(0);
 
+    // 상태유지
+    const iconItem = ref({
+        bookmark: [],
+        like: [],
+        dislike: [],
+    });
     // 사용자의 북마크 목록 가져오기
     const fetchMemberBookmarkStatus = async () => {
         try {
-            const actionResponse = await $fetch(`actions/member/${userDetails.id.value}`, {
+            const actionResponse = await $fetch(`${config.public.apiBase}actions/member/${userDetails.id.value}`, {
                 headers: {
                     Authorization: `Bearer ${userDetails.token.value}`,
                 },
@@ -34,7 +41,6 @@ export default function useWebsiteActionFetch() {
 
     const fetchWebsiteActionStatus = async (websiteId) => {
         try {
-            const config = useRuntimeConfig();
 
             if (Array.isArray(websiteId)) {
                 const websiteListActionResponse = await $fetch(`${config.public.apiBase}actions/website?websiteIds=${websiteId.join(",")}`, {
@@ -87,6 +93,7 @@ export default function useWebsiteActionFetch() {
     };
 
     return {
+        iconItem,
         likeCount,
         dislikeCount,
         rate,

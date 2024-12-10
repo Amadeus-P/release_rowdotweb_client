@@ -5,7 +5,7 @@ import { FormatRelativeTime } from '~/public/js/formatRelativeTime';
 // 설정
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { rate, fetchMemberBookmarkStatus, fetchWebsiteActionStatus  } = useWebsiteActionFetch();
+const { iconItem, rate, fetchMemberBookmarkStatus, fetchWebsiteActionStatus  } = useWebsiteActionFetch();
 
 // 동적 CSS 변수
 const selectedMainCategory = ref("");
@@ -23,13 +23,6 @@ const pageNumbers = ref([]);
 // 검색
 const keyWord = ref('');
 const searchResults = ref([]); // 검색 결과를 저장할 배열
-
-// 좋아요, 싫어요, 저장
-const iconItem = ref({
-    bookmark: [],
-    like: [],
-    dislike: [],
-});
 
 // 카테고리
 const mainCategories = ref([]);
@@ -206,7 +199,7 @@ const actionHandler = async (memberId, websiteId, type) => {
     console.log('type', type);
     try {
         action = type;
-        console.log("action ", action);
+        console.log("action 데이터 ", action);
 
         let isActionApplied = false;
 
@@ -421,7 +414,7 @@ onUpdated(() => {
                             alt="대표 이미지" />
                     </NuxtLink>
                     <button type="button" class="btn icon:font-1 text-hidden" style="padding: 0;"
-                        :class="iconItem.includes(w.id) ? 'icon:bookmark-added' : 'icon:bookmark-add'"
+                        :class="iconItem.bookmark && iconItem.bookmark.includes(w.id) ? 'icon:bookmark-added' : 'icon:bookmark-add'"
                         @click="actionHandler(userDetails.id, w.id, 'bookmark')">
                         저장
                     </button>
