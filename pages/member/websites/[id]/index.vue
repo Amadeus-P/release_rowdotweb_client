@@ -5,7 +5,7 @@ const websiteId = Number(useRoute().params.id); // 문자열 "1" 을 숫자 1로
 
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { likeCount, dislikeCount, fetchWebsiteActionStatus } = useWebsiteActionFetch(websiteId);
+const { likeCount, dislikeCount, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
 const isLoading = ref(true);
 const error = ref(null);
@@ -100,7 +100,7 @@ const actionHandler = async (memberId, websiteId, type) => {
             console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
         }
 
-        await fetchWebsiteActionStatus();
+        await fetchWebsiteActionStatus(websiteId);
 
     } catch (error) {
         console.error('상태 업데이트 중 오류:', error);
@@ -111,7 +111,7 @@ function getLikeCount(websiteId) {
     return dto ? dto.likeCount || 0 : 0;
 }
 onMounted(async () => {
-    await fetchWebsiteActionStatus();
+    await fetchWebsiteActionStatus(websiteId);
     try {
         // 회원의 액션 정보를 불러옴
         const actionResponse = await useCSRFetch(`actions/member/${userDetails.id.value}`, {

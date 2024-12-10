@@ -198,10 +198,7 @@
     margin: 0;
     padding: 0;
 }
-:is(.icon\:liked, .icon\:disliked)::before{
-background-color: #c60072;
-}
-
+    
 :is(
         .icon\:home,
         .icon\:add,
