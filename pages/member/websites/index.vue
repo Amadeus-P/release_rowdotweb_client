@@ -5,6 +5,7 @@ import { FormatRelativeTime } from '~/public/js/formatRelativeTime';
 // 설정
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
+const { iconItem, rate, fetchMemberBookmarkStatus, fetchWebsiteActionStatus  } = useWebsiteActionFetch();
 
 // 동적 CSS 변수
 const selectedMainCategory = ref("");
@@ -23,13 +24,6 @@ const pageNumbers = ref([]);
 const keyWord = ref('');
 const searchResults = ref([]); // 검색 결과를 저장할 배열
 
-// 좋아요, 싫어요, 저장
-const iconItem = ref({
-    bookmark: [],
-    like: [],
-    dislike: [],
-});
-
 // 카테고리
 const mainCategories = ref([]);
 const subCategories = ref([]);
@@ -41,34 +35,31 @@ const websites = ref([]);
 const categories = ref([]);
 
 // SSR {response}
-// 전체 카테고리로 보여주기 위해 미리 가져오는 데이터
-const { data: websiteData } = await useSSRFetch("member/websites");
 const { data: categoryData } = await useSSRFetch("categories", {
     params: {
         parentId: null
     }
 });
-
 // api 데이터 감시
 watchEffect(() => {
-    if (websiteData.value) {
-        websites.value = websiteData.value;
-        console.log("최신 웹사이트: ", websites.value);
+    // if (websiteData.value) {
+    //     websites.value = websiteData.value;
+    //     console.log("최신 웹사이트: ", websites.value);
 
-        pageNumbers.value = websiteData.value.pages;
-        startNum.value = websiteData.value.pages[0];
-        totalPages.value = websiteData.value.totalPages;
-        hasPreviousPage.value = websiteData.value.hasPreviousPage;
-        hasNextPage.value = websiteData.value.hasNextPage;
+    //     pageNumbers.value = websiteData.value.pages;
+    //     startNum.value = websiteData.value.pages[0];
+    //     totalPages.value = websiteData.value.totalPages;
+    //     hasPreviousPage.value = websiteData.value.hasPreviousPage;
+    //     hasNextPage.value = websiteData.value.hasNextPage;
 
-        console.log("페이지 정보: ",
-            "페이지 수", pageNumbers.value,
-            "시작 번호", startNum.value,
-            "총 페이지 수", totalPages.value,
-            "이전 페이지", hasPreviousPage.value,
-            "다음 페이지", hasNextPage.value);
+    //     console.log("페이지 정보: ",
+    //         "페이지 수", pageNumbers.value,
+    //         "시작 번호", startNum.value,
+    //         "총 페이지 수", totalPages.value,
+    //         "이전 페이지", hasPreviousPage.value,
+    //         "다음 페이지", hasNextPage.value);
 
-    }
+    // }
     if (categoryData.value) {
         categories.value = categoryData.value.categoryListDtos;
         console.log("최신 카테고리: ", categories.value);
@@ -129,8 +120,13 @@ const selectAllMainHandler = async (name) => {
     console.log('selectedMainCategory:', selectedMainCategory.value);
     if (name === "전체") {
         const websitesResponse = await useCSRFetch("member/websites");
-        console.log("allWebsitesResponse ", websitesResponse.websiteListDtos);
-
+        console.log("websitesResponse.websiteListDtos", websitesResponse.websiteListDtos);
+        console.log('websitesResponse.websiteListDtos.id', websitesResponse.websiteListDtos.map(w => w.id));
+        const websiteIds = websitesResponse.websiteListDtos.map((w) => w.id);
+        console.log('websiteIds', websiteIds);
+        
+        await fetchWebsiteActionStatus(websiteIds);
+        console.log('rate', rate.value);
         filteredWebsite.value = websitesResponse.websiteListDtos;
         console.log("전체 카테고리 웹사이트 데이터: ", filteredWebsite.value);
     }
@@ -144,14 +140,14 @@ const fetchWebsites = async (detailCategoryId) => {
                 categoryId: detailCategoryId
             }
         });
-        console.log("fetchWebsites", websiteResponse);
+        console.log("websiteResponse", websiteResponse);
         
 
         if (!websiteResponse || !websiteResponse.websiteListDtos) {
             console.error("웹사이트 데이터가 비어있습니다.");
             return;
         }
-
+        await fetchWebsiteActionStatus(detailCategoryId);
         filteredWebsite.value = websiteResponse.websiteListDtos;
         console.log(`소분류 ID ${detailCategoryId}의 웹사이트 데이터:`, filteredWebsite.value);
 
@@ -203,7 +199,7 @@ const actionHandler = async (memberId, websiteId, type) => {
     console.log('type', type);
     try {
         action = type;
-        console.log("action ", action);
+        console.log("action 데이터 ", action);
 
         let isActionApplied = false;
 
@@ -227,7 +223,7 @@ const actionHandler = async (memberId, websiteId, type) => {
         iconItem.value[action] = actionArray;
 
         // 서버로 액션 상태 전송
-        const response = await useCSRFetch(`member/websites/actions`, {
+        const response = await useCSRFetch(`actions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -283,31 +279,8 @@ onMounted(async () => {
         selectAllMainHandler(mainCategories.value[0].name);
     }
 
-    // 사용자의 북마크 목록 가져오기
-    try {
-        const actionResponse = await useCSRFetch(`member/websites/actions?memberId=${userDetails.id.value}`, {
-            headers: {
-                Authorization: `Bearer ${userDetails.token.value}`,
-            },
-        });
-        console.log("actionResponse ", actionResponse);
-
-        if (actionResponse && actionResponse.actionDtos) {
-            // `actionDtos`를 기반으로 `iconItem`을 업데이트
-            actionResponse.actionDtos.forEach((actionDto) => {
-                const { action, websiteId } = actionDto;
-                if (actionDto.isAdded) {
-                    if (!iconItem.value[action]) {
-                        iconItem.value[action] = [];
-                    }
-                    iconItem.value[action].push(websiteId);
-                }
-            });
-            console.log('액션 목록:', iconItem.value);
-        }
-    } catch (error) {
-        console.error('북마크 목록 가져오기 중 오류:', error);
-    }
+    await fetchMemberBookmarkStatus();
+   
 
 });
 onBeforeUpdate(() => {
@@ -441,7 +414,7 @@ onUpdated(() => {
                             alt="대표 이미지" />
                     </NuxtLink>
                     <button type="button" class="btn icon:font-1 text-hidden" style="padding: 0;"
-                        :class="iconItem.includes(w.id) ? 'icon:bookmark-added' : 'icon:bookmark-add'"
+                        :class="iconItem.bookmark && iconItem.bookmark.includes(w.id) ? 'icon:bookmark-added' : 'icon:bookmark-add'"
                         @click="actionHandler(userDetails.id, w.id, 'bookmark')">
                         저장
                     </button>
@@ -457,7 +430,7 @@ onUpdated(() => {
                                 {{ w.relativeTime }}
                             </div>
                             <div class="btn icon:like">
-                                <span>100%</span>
+                                <span>{{ rate }}%</span>
                             </div>
                             <div class="btn icon:views">
                                 <span>1만</span>
@@ -485,15 +458,14 @@ onUpdated(() => {
                     <ul class="website-content">
                         <li style="display: flex; justify-content: space-between;">
                             <span class="text-overflow"
-                                style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">{{ w.title
-                                }}</span>
+                                style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">{{ w.title}}</span>
                         </li>
                         <li style="display: flex;">
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
                             <div class="btn icon:like">
-                                <span>100%</span>
+                                <span>{{ rate }}%</span>
                             </div>
                             <div class="btn icon:views">
                                 <span>1만</span>
@@ -505,7 +477,7 @@ onUpdated(() => {
         </section>
     </main>
 
-    <!-- 무한 스크롤 api 호출-->
+    <!-- 모바일은 무한 스크롤 api로 변경-->
     <section class="" style="margin-bottom: 60px;">
         <ul class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 15px;">
             <li>

@@ -2,8 +2,13 @@
     const config = useRuntimeConfig();
     const userDetails = useUserDetails();
 
-    console.log(userDetails.profileImage.value);
-    
+    const member = ref(null);
+
+    if(userDetails.id.value){
+        const memberResponse = await useCSRFetch(`member/profile/${userDetails.id.value}`);
+        member.value = memberResponse;
+    }
+
 </script>
 
 <template>
@@ -11,13 +16,17 @@
     <HeaderMenu/>
 
     <main>
-        <section class="link-box" style="display: flex; flex-wrap: wrap; justify-content: center; margin: 10px;">
+        <section class="link-box" style="display: flex; flex-wrap: wrap; justify-content: center; margin: 10px;" 
+        v-if="member && member.profileImage">
             <div class="user-card" style="width: 100%;">
-                <img class="profile-img" :src="`${config.public.apiBase}members/${userDetails.profileImage.value}`" alt="프로필 사진" />
+                <img class="profile-img" 
+                :src="member.profileImage?.length ? `${config.public.apiBase}member/profile/${member.id}` : '/img/member/default.png'" alt="프로필 사진" />
+                
                 <div class="user-details">
-                    <p>{{ userDetails.username}}</p>
-                    <p>{{ userDetails.profileName }}</p>
-                    <p>{{userDetails.regDate }}</p>
+                    <p>{{ member.username}}</p>
+                    <p>{{ member.profileName }}</p>
+                    <p>{{ member.regDate }}</p>
+                    <p>{{ member.id }}</p>
                 </div>
             </div>
             <ul>

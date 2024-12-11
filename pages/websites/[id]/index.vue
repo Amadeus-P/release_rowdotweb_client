@@ -32,7 +32,7 @@ try {
         console.log("websiteResponse ", websiteResponse);
         console.log("website.member.id", website.value.member.id);
     }
-    const memberResponse = await useCSRFetch(`member/${website.value.member.id}`, {
+    const memberResponse = await useCSRFetch(`member/profile/${website.value.member.id}`, {
     });
 
     if (memberResponse) {
