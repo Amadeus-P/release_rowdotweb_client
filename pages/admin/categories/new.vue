@@ -55,43 +55,19 @@ const submitHandler = async(e) => {
                     v-model="categoryForm.iconName">
                 </label>
                 <label>
-                    <span>대분류 카테고리 <span style="color: red;" aria-label="required">*</span></span>
+                    <span>대분류 명 <span style="color: red;" aria-label="required">*</span></span>
                     <input type="text" placeholder="실제로 사용할 이름을 입력하세요." required 
                     v-model="categoryForm.name">
                 </label>
+                <div class="text-hidden" style="position: relative; border: none; border-top: 1px solid var(--base-color-3); margin: 30px 0 30px 0; width: 100%;">구분선</div>
                 <label>
-                    <span>대분류 한글명</span>
-                    <input type="text" v-model="categoryForm.korName">
-                </label>
-                <label>
-                    <span>대분류 영문명</span>
-                    <input type="text" v-model="categoryForm.engName">
+                    <span>중분류 명 <span style="color: red;" aria-label="required">*</span></span>
+                    <input type="text" placeholder="실제로 사용할 이름을 입력하세요." required>
                 </label>
                 <div class="text-hidden" style="position: relative; border: none; border-top: 1px solid var(--base-color-3); margin: 30px 0 30px 0; width: 100%;">구분선</div>
                 <label>
-                    <span>중분류 카테고리 <span style="color: red;" aria-label="required">*</span></span>
+                    <span>소분류 명 <span style="color: red;" aria-label="required">*</span></span>
                     <input type="text" placeholder="실제로 사용할 이름을 입력하세요." required>
-                </label>
-                <label>
-                    <span>중분류 한글명</span>
-                    <input type="text">
-                </label>
-                <label>
-                    <span>중분류 영문명</span>
-                    <input type="text">
-                </label>
-                <div class="text-hidden" style="position: relative; border: none; border-top: 1px solid var(--base-color-3); margin: 30px 0 30px 0; width: 100%;">구분선</div>
-                <label>
-                    <span>소분류 카테고리 <span style="color: red;" aria-label="required">*</span></span>
-                    <input type="text" placeholder="실제로 사용할 이름을 입력하세요." required>
-                </label>
-                <label>
-                    <span>소분류 한글명</span>
-                    <input type="text">
-                </label>
-                <label>
-                    <span>소분류 영문명</span>
-                    <input type="text">
                 </label>
                 <div style="display: flex; margin-top: 50px;">
                     <button class="btn btn:round btn-submit">카테고리 등록하기</button>

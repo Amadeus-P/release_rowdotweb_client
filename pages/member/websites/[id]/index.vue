@@ -5,7 +5,7 @@ const websiteId = Number(useRoute().params.id); // 문자열 "1" 을 숫자 1로
 
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { likeCount, dislikeCount, fetchWebsiteActionStatus } = useWebsiteActionFetch();
+const { iconItem, likeCount, dislikeCount, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
 const isLoading = ref(true);
 const error = ref(null);
@@ -17,12 +17,6 @@ const newComment = ref('');
 
 const actionDtos = ref([]);
 
-// 좋아요, 싫어요, 저장
-const iconItem = ref({
-    bookmark: [],
-    like: [],
-    dislike: [],
-});
 
 const websiteForm = ref({
     content: '',
@@ -35,14 +29,14 @@ try {
     const websiteResponse = await useCSRFetch(`member/websites/${websiteId}`);
     if (websiteResponse) {
         website.value = websiteResponse;
-        console.log("websiteResponse ", websiteResponse);
-        console.log("website.member.id", website.value.member.id);
+        // console.log("websiteResponse ", websiteResponse);
+        // console.log("website.member.id", website.value.member.id);
     }
     // 이 웹사이트 등록한 사람 누구야
     const memberResponse = await useCSRFetch(`member/websites/${website.value.member.id}`);
     if (memberResponse) {
         member.value = memberResponse;
-        console.log("memberResponse", memberResponse);
+        // console.log("memberResponse", memberResponse);
     }
 } catch (err) {
     error.value = "데이터를 불러오는 중 오류가 발생했습니다.";
@@ -54,18 +48,18 @@ try {
 
 // 북마크 추천 비추천 등등
 const actionHandler = async (memberId, websiteId, type) => {
-    console.log('memberId ', memberId.value); // 문자열
-    console.log('websiteId ', websiteId);
-    console.log('type', type);
+    // console.log('memberId ', memberId.value); // 문자열
+    // console.log('websiteId ', websiteId);
+    // console.log('type', type);
     try {
         let isActionApplied = false;
         // type과 같은 iconItem 객체의 속성에 접근, []: 괄호 접근법 아주 개 ㅈ같은 표현식이다.
         const actionArray = iconItem.value[type] || [];
-        console.log('iconItem.value[type]', iconItem.value[type]);
+        // console.log('iconItem.value[type]', iconItem.value[type]);
 
         // action의 id  찾기, 0(있음)  또는 -1(없음)
         const index = actionArray.indexOf(websiteId);
-        console.log("actionArray", actionArray, index);
+        // console.log("actionArray", actionArray, index);
 
         if (index > -1) {
             // 이미 북마크되어 있다면 제거
@@ -95,9 +89,9 @@ const actionHandler = async (memberId, websiteId, type) => {
             },
         });
         if (type == 'like') {
-            console.log(`좋아요 상태 업데이트 완료: ${websiteId}`, response.message);
+            // console.log(`좋아요 상태 업데이트 완료: ${websiteId}`, response.message);
         } else if (type == 'dislike') {
-            console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
+            // console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
         }
 
         await fetchWebsiteActionStatus(websiteId);
@@ -119,11 +113,11 @@ onMounted(async () => {
                 Authorization: `Bearer ${userDetails.token.value}`,
             },
         });
-        console.log("actionResponse ", actionResponse);
+        // console.log("actionResponse ", actionResponse);
 
         if (actionResponse && actionResponse.actionDtos) {
             actionDtos.value = actionResponse.actionDtos;
-            console.log('actionDtos.value', actionDtos.value);
+            // console.log('actionDtos.value', actionDtos.value);
 
             actionDtos.value.forEach((actionDto) => {
                 const { action, websiteId } = actionDto;
