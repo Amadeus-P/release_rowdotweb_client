@@ -5,7 +5,7 @@ import { FormatRelativeTime } from '~/public/js/formatRelativeTime';
 // 설정
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { iconItem, rate, fetchMemberBookmarkStatus, fetchWebsiteActionStatus  } = useWebsiteActionFetch();
+const { iconItem, rate, fetchMemberBookmarkStatus, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
 // 동적 CSS 변수
 const selectedMainCategory = ref("");
@@ -19,6 +19,7 @@ const totalPages = ref(0);
 const hasPreviousPage = ref(false);
 const hasNextPage = ref(false);
 const pageNumbers = ref([]);
+const currentPage = ref(parseInt(useRoute().query.page) || 1); // 현재 페이지
 
 // 검색
 const keyWord = ref('');
@@ -28,10 +29,9 @@ const searchResults = ref([]); // 검색 결과를 저장할 배열
 const mainCategories = ref([]);
 const subCategories = ref([]);
 const detailCategories = ref([]);
-const filteredWebsite = ref([]); // 화면에 나올 웹사이트 목록 변수
+const filteredWebsite = ref([]); // 화면에 나올 웹사이트 목록
 
-//  데이터 fetch 저장 객체
-const websites = ref([]);
+//  fetch 데이터 저장용
 const categories = ref([]);
 
 // SSR {response}
@@ -40,32 +40,14 @@ const { data: categoryData } = await useSSRFetch("categories", {
         parentId: null
     }
 });
-// api 데이터 감시
+// 데이터 감시(사이드 이펙트)
 watchEffect(() => {
-    // if (websiteData.value) {
-    //     websites.value = websiteData.value;
-    //     console.log("최신 웹사이트: ", websites.value);
-
-    //     pageNumbers.value = websiteData.value.pages;
-    //     startNum.value = websiteData.value.pages[0];
-    //     totalPages.value = websiteData.value.totalPages;
-    //     hasPreviousPage.value = websiteData.value.hasPreviousPage;
-    //     hasNextPage.value = websiteData.value.hasNextPage;
-
-    //     console.log("페이지 정보: ",
-    //         "페이지 수", pageNumbers.value,
-    //         "시작 번호", startNum.value,
-    //         "총 페이지 수", totalPages.value,
-    //         "이전 페이지", hasPreviousPage.value,
-    //         "다음 페이지", hasNextPage.value);
-
-    // }
     if (categoryData.value) {
         categories.value = categoryData.value.categoryListDtos;
-        console.log("최신 카테고리: ", categories.value);
+        // console.log("최신 카테고리: ", categories.value);
     }
     mainCategories.value = categories.value;
-    console.log("대분류", mainCategories.value);
+    // console.log("대분류", mainCategories.value);
 });
 
 // 시간 포맷
@@ -117,39 +99,64 @@ const fetchCategory = async (categoryId, type) => {
 // 전체 카테고리일 때
 const selectAllMainHandler = async (name) => {
     selectedMainCategory.value = name;
-    console.log('selectedMainCategory:', selectedMainCategory.value);
+    // console.log('selectedMainCategory:', selectedMainCategory.value);
     if (name === "전체") {
+
         const websitesResponse = await useCSRFetch("member/websites");
-        console.log("websitesResponse.websiteListDtos", websitesResponse.websiteListDtos);
-        console.log('websitesResponse.websiteListDtos.id', websitesResponse.websiteListDtos.map(w => w.id));
+        console.log("websitesResponse.websiteListDtos", websitesResponse);
+
+        // 페이지 정보
+        pageNumbers.value = websitesResponse.pages;
+        startNum.value = websitesResponse.pages[0];
+        totalPages.value = websitesResponse.totalPages;
+        hasPreviousPage.value = websitesResponse.hasPreviousPage;
+        hasNextPage.value = websitesResponse.hasNextPage;
+        // console.log("페이지 정보: ",
+        //     "페이지 수", pageNumbers.value,
+        //     "시작 번호", startNum.value,
+        //     "총 페이지 수", totalPages.value,
+        //     "이전 페이지", hasPreviousPage.value,
+        //     "다음 페이지", hasNextPage.value);
+
         const websiteIds = websitesResponse.websiteListDtos.map((w) => w.id);
-        console.log('websiteIds', websiteIds);
-        
+        // console.log('websitesResponse.websiteListDtos.id', websitesResponse.websiteListDtos.map(w => w.id));
+        // console.log('websiteIds', websiteIds);
         await fetchWebsiteActionStatus(websiteIds);
-        console.log('rate', rate.value);
+        // console.log('rate', rate.value);
+
         filteredWebsite.value = websitesResponse.websiteListDtos;
-        console.log("전체 카테고리 웹사이트 데이터: ", filteredWebsite.value);
+        console.log("전체 웹사이트 데이터: ", filteredWebsite.value);
     }
 }
 
 // 전체가 아닐 때
 const fetchWebsites = async (detailCategoryId) => {
     try {
-        const websiteResponse = await useCSRFetch("member/websites", {
+        const websitesResponse = await useCSRFetch("member/websites", {
             params: {
                 categoryId: detailCategoryId
             }
         });
-        console.log("websiteResponse", websiteResponse);
-        
+        // console.log("websiteResponse", websiteResponse);
 
-        if (!websiteResponse || !websiteResponse.websiteListDtos) {
+        if (!websitesResponse || !websitesResponse.websiteListDtos) {
             console.error("웹사이트 데이터가 비어있습니다.");
             return;
         }
-        await fetchWebsiteActionStatus(detailCategoryId);
-        filteredWebsite.value = websiteResponse.websiteListDtos;
-        console.log(`소분류 ID ${detailCategoryId}의 웹사이트 데이터:`, filteredWebsite.value);
+
+        // 페이지 정보
+        pageNumbers.value = websitesResponse.pages;
+        startNum.value = websitesResponse.pages[0];
+        totalPages.value = websitesResponse.totalPages;
+        hasPreviousPage.value = websitesResponse.hasPreviousPage;
+        hasNextPage.value = websitesResponse.hasNextPage;
+
+        const websiteIds = websitesResponse.websiteListDtos.map(website => website.id);
+        // console.log("필터링한 웹사이트 ID 목록:", websiteIds);
+        await fetchWebsiteActionStatus(websiteIds);
+
+        filteredWebsite.value = websitesResponse.websiteListDtos;
+        // console.log(`소분류 ID ${detailCategoryId}의 웹사이트 데이터:`, filteredWebsite.value);
 
     } catch (error) {
         console.error("웹사이트 데이터 가져오기 중 오류 발생: ", error);
@@ -194,12 +201,12 @@ const searchHandler = async () => {
 const actionHandler = async (memberId, websiteId, type) => {
 
     let action = "";
-    console.log('memberId ', memberId.value);
-    console.log('websiteId ', websiteId);
-    console.log('type', type);
+    // console.log('memberId ', memberId.value);
+    // console.log('websiteId ', websiteId);
+    // console.log('type', type);
     try {
         action = type;
-        console.log("action 데이터 ", action);
+        // console.log("action 데이터 ", action);
 
         let isActionApplied = false;
 
@@ -207,7 +214,7 @@ const actionHandler = async (memberId, websiteId, type) => {
         const actionArray = iconItem.value[action] || [];
         // 이미 북마크되어 있는지 확인
         const index = actionArray.indexOf(websiteId);
-        console.log("iconItem ", iconItem.value);
+        // console.log("iconItem ", iconItem.value);
 
         if (index > -1) {
             // 이미 북마크되어 있다면 제거
@@ -249,7 +256,38 @@ const actionHandler = async (memberId, websiteId, type) => {
 
 // 페이지네이션
 const pageClickHandler = async (page) => {
-    console.log("page", page, totalPages);
+    if (page < 1 || page > totalPages.value) return;
+    currentPage.value = page;
+    // console.log("page", page, totalPages);
+
+    try {
+        const websitesResponse = await useCSRFetch("member/websites", {
+            params: {
+                page: page,
+                size: 30,
+                ...(selectedMainCategory.value !== "전체" && {
+                    categoryId: selectedMainCategory.value, // 선택된 카테고리가 있으면 추가
+                }),
+            },
+        });
+
+        // 페이지 정보 갱신
+        pageNumbers.value = websitesResponse.pages;
+        startNum.value = websitesResponse.pages[0];
+        totalPages.value = websitesResponse.totalPages;
+        hasPreviousPage.value = websitesResponse.hasPreviousPage;
+        hasNextPage.value = websitesResponse.hasNextPage;
+
+        // 웹사이트 데이터 업데이트
+        const websiteIds = websitesResponse.websiteListDtos.map((w) => w.id);
+        await fetchWebsiteActionStatus(websiteIds);
+
+        filteredWebsite.value = websitesResponse.websiteListDtos;
+
+    } catch (error) {
+        console.error("페이지 로드 중 오류 발생:", error);
+    }
+
     if (page < 1) {
         alert("이전 페이지가 없습니다.");
         return;
@@ -265,29 +303,28 @@ const getFavicon = (url) => {
     return `https://www.google.com/s2/favicons?domain=${url}&sz=64`;
     // 또는
     // return `https://favicon.io/favicon/${url}`;
+    // 서버로 보내고 이미지로 만들어서 등록함
 }
 
 // 생명주기
 onBeforeMount(() => {
-    console.log("onBeforeMount");
+    // console.log("onBeforeMount");
 });
 onMounted(async () => {
-    console.log("onMounted");
+    // console.log("onMounted");
     // "전체" 카테고리를 자동으로 선택하도록 설정
-    console.log('selectedMainCategory:', selectedMainCategory.value);
+    // console.log('selectedMainCategory:', selectedMainCategory.value);
     if (mainCategories.value.length > 0) {
         selectAllMainHandler(mainCategories.value[0].name);
     }
 
     await fetchMemberBookmarkStatus();
-   
-
 });
 onBeforeUpdate(() => {
-    console.log("onBeforeUpdate");
+    // console.log("onBeforeUpdate");
 });
 onUpdated(() => {
-    console.log("onUpdated");
+    // console.log("onUpdated");
 });
 </script>
 
@@ -305,7 +342,7 @@ onUpdated(() => {
             <NuxtLink to="/member/websites">
                 <h1 class="" style="display: flex; flex-shrink: 0;">
                     <!-- <img style="width: 60px; " src="/img/logo/watercolor-4116932_1280.png" alt="로고"> -->
-                     <span style="font-size: 20px; font-weight: 600;">ROWDOTWEB</span>
+                    <span style="font-size: 20px; font-weight: 600;">ROWDOTWEB</span>
                 </h1>
             </NuxtLink>
             <nav>
@@ -315,7 +352,7 @@ onUpdated(() => {
                     <li>
                         <!-- <span v-else class="btn btn:round">{{ userDetails.profileName }}</span> -->
                         <button class="btn btn:round" @click="userDetails.signout()">{{ userDetails.profileName }}
-                            </button>
+                        </button>
                     </li>
                 </ul>
             </nav>
@@ -385,11 +422,11 @@ onUpdated(() => {
             <section style="display: flex; justify-content: end; gap: 5px;">
                 <h1>필터</h1>
                 <ul class="vertical-bar filter-list" style="">
-                    <li>
+                    <!-- <li>
                         <label @click="showBookmarkListHandler">
                             <input type="checkbox" name="filter" value="recommend">북마크
                         </label>
-                    </li>
+                    </li> -->
                     <!-- <li>
                         <label>
                             <input type="radio" name="filter" value="recommend">인기순
@@ -458,13 +495,14 @@ onUpdated(() => {
                     <ul class="website-content">
                         <li style="display: flex; justify-content: space-between;">
                             <span class="text-overflow"
-                                style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">{{ w.title}}</span>
+                                style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">{{
+                                    w.title }}</span>
                         </li>
                         <li style="display: flex;">
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
-                            <div class="btn icon:like">
+                            <div class="btn icon:liked">
                                 <span>{{ rate }}%</span>
                             </div>
                             <div class="btn icon:views">
@@ -481,26 +519,21 @@ onUpdated(() => {
     <section class="" style="margin-bottom: 60px;">
         <ul class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 15px;">
             <li>
-                <RouterLink 
-                class="icon:arrow-back text-hidden"
-                :class="{ 'disabled': !hasPreviousPage == false }"
-                :to="`/member/websites?page=${startNum - 1 < 1 ? 1 : startNum - 1}`"
-                @click.prevent="pageClickHandler(startNum - 1)">이전
+                <RouterLink class="icon:arrow-back text-hidden" :class="{ 'disabled': !hasPreviousPage == false }"
+                    :to="`/member/websites?page=${startNum - 1 < 1 ? 1 : startNum - 1}`"
+                    @click.prevent="pageClickHandler(startNum - 1)">이전
                 </RouterLink>
             </li>
             <li v-for="p in pageNumbers" :key="p">
-                <RouterLink class="pager"
-                    :to="`/member/websites?page=${p}`" :class="{ 'activePager': p == useRoute().query.page }"
-                    @click.prevent="pageClickHandler(p)">{{ p }}
+                <RouterLink class="pager" :to="`/member/websites?page=${p}`"
+                    :class="{ 'activePager': p == useRoute().query.page }" @click.prevent="pageClickHandler(p)">{{ p }}
                 </RouterLink>
             </li>
             <li>
-                <RouterLink 
-                class="icon:arrow-forward text-hidden"
-                :to="`/member/websites?page=${startNum + 5 >= totalPages ? totalPages : startNum + 5}`"
-                :class="{ 'disabled': !hasNextPage == false }"
-                @click.prevent="pageClickHandler(startNum + 1)">다음
-            </RouterLink>
+                <RouterLink class="icon:arrow-forward text-hidden"
+                    :to="`/member/websites?page=${startNum + 5 >= totalPages ? totalPages : startNum + 5}`"
+                    :class="{ 'disabled': !hasNextPage == false }" @click.prevent="pageClickHandler(startNum + 1)">다음
+                </RouterLink>
             </li>
         </ul>
     </section>

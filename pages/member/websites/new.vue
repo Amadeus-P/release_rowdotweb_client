@@ -54,7 +54,7 @@ const fetchDetailCategories = async (subCategoryId) => {
         }
     });
     console.log(data);
-    if(data && data.categoryListDtos) {
+    if (data && data.categoryListDtos) {
         detailCategories.value[subCategoryId] = data.categoryListDtos;
     }
 };
@@ -68,12 +68,33 @@ const handleFileChange = (event) => {
 const submitHandler = async (e) => {
     e.preventDefault();
 
-    console.log("이미지", websiteForm.value.img.name);
-    console.log('title', websiteForm.value.title);
-    console.log('url', websiteForm.value.url);
-    console.log('categoryId', websiteForm.value.categoryId);
+    // 유효성 검사
+    if (!websiteForm.value.title || websiteForm.value.title.trim() === "") {
+        console.error("제목을 입력해주세요.");
+        return;
+    }
 
-    
+    if (!websiteForm.value.url || !/^https:\/\/.+$/.test(websiteForm.value.url)) {
+        console.error("'https://'로 시작해야 합니다.");
+        return;
+    }
+
+    if (!websiteForm.value.categoryId) {
+        console.error("카테고리를 선택해주세요.");
+        return;
+    }
+
+    if (!websiteForm.value.img) {
+        console.error("이미지를 업로드해주세요.");
+        return;
+    }
+
+    // console.log("이미지", websiteForm.value.img.name);
+    // console.log('title', websiteForm.value.title);
+    // console.log('url', websiteForm.value.url);
+    // console.log('categoryId', websiteForm.value.categoryId);
+
+
     const formData = new FormData();
 
     formData.append('title', websiteForm.value.title);
@@ -83,16 +104,16 @@ const submitHandler = async (e) => {
     try {
         // 데이터 전송 (Fetch API 사용)
         // const response = await useCSRFetch(`member/websites`, formData, {
-            // method: 'POST'
+        // method: 'POST'
         // });
 
         const response = await $fetch(`${config.public.apiBase}member/websites`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    Authorization: `Bearer ${userDetails.token.value}` // Bearer 토큰 추가
-                }
-            })
+            method: 'POST',
+            body: formData,
+            headers: {
+                Authorization: `Bearer ${userDetails.token.value}` // Bearer 토큰 추가
+            }
+        })
 
         // $fetch가 응답을 JSON으로 Parcing하기때문에 response는 JSON 문자열임
         const result = await response;
@@ -109,6 +130,12 @@ const submitHandler = async (e) => {
         console.error('에러 발생:', error);
     }
 }
+
+const addHttpsPrefix = () => {
+  if (!websiteForm.value.url.startsWith('https://')) {
+    websiteForm.value.url = 'https://';
+  }
+};
 </script>
 <template>
 
@@ -125,7 +152,8 @@ const submitHandler = async (e) => {
                     <section>
                         <h2>카테고리 선택</h2>
                         <ul>
-                            <li class="main" v-for="main in mainCategories.filter(item => item.name !== '전체')" :key="main.id">
+                            <li class="main" v-for="main in mainCategories.filter(item => item.name !== '전체')"
+                                :key="main.id">
                                 <label @click="fetchSubCategories(main.id)">
                                     <span>{{ main.name }} </span>
                                     <input type="radio" name="main" />
@@ -133,15 +161,17 @@ const submitHandler = async (e) => {
                                 <ul>
                                     <li class="sub" v-for="sub in subCategories[main.id]" :key="sub.id">
                                         <label @click="fetchDetailCategories(sub.id)">
-                                            
+
                                             <span>{{ sub.name }}</span>
                                             <input type="radio" name="sub" />
                                         </label>
                                         <ul>
-                                            <li class="detail" v-for="detail in detailCategories[sub.id]" :key="detail.id">
+                                            <li class="detail" v-for="detail in detailCategories[sub.id]"
+                                                :key="detail.id">
                                                 <label>
                                                     <span>{{ detail.name }}</span>
-                                                    <input type="radio" name="detail" :value="detail.id" v-model="websiteForm.categoryId"/>
+                                                    <input type="radio" name="detail" :value="detail.id"
+                                                        v-model="websiteForm.categoryId" />
                                                 </label>
                                             </li>
                                         </ul>
@@ -156,23 +186,24 @@ const submitHandler = async (e) => {
                         <label class="">
                             <span>대표 URL</span>
                             <strong><span style="color: var(--accent-color-1);" aria-label="필수입력">*</span></strong>
-                            <input type="url" id="url-prefix" name="url" pattern="https:(//)?.*"placeholder="https://"  autofocus required
-                                v-model="websiteForm.url" />
+                            <input type="url" id="url-prefix" name="url" pattern="https:(//)?.*" placeholder="https://" autofocus required 
+                            v-model="websiteForm.url"
+                            @focus="addHttpsPrefix" />
                         </label>
                         <label class="">
                             <span>홈페이지 타이틀</span>
                             <strong><span style="color: var(--accent-color-1);" aria-label="필수입력">*</span></strong>
-                            <input type="text" name="title" placeholder="" required 
-                            v-model="websiteForm.title" />
+                            <input type="text" name="title" placeholder="" required v-model="websiteForm.title" />
                         </label>
                         <label>
                             <span>이미지 업로드</span>
                             <span
                                 style="font-size: var(--font-size-2); font-weight: var(--font-weight-6);  color: var(--base-color-3);">
-                                웹사이트와관련된 이미지나 스크린샷을 올려주세요. 16: 9 비율 최대 1장 업로드
+                                웹사이트와 관련된 이미지나 스크린샷을 올려주세요. 16: 9 비율 최대 1장 업로드
                             </span>
                             <input type="file" @change="handleFileChange" />
-                            <span class="icon:add" style="display: flex; width: 100%; height: 100%;  border: 1px solid black;"></span>
+                            <span class="icon:add"
+                                style="display: flex; width: 100%; height: 100%;  border: 1px solid black;"></span>
                         </label>
                     </section>
 
@@ -186,89 +217,107 @@ const submitHandler = async (e) => {
 </template>
 
 <style scoped>
-    *{
-        box-sizing: border-box;
-            font-size: var(--font-size-4);
-            font-weight: var(--font-weight-6);
-    }
+* {
+    box-sizing: border-box;
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-6);
+}
+
 /* 아코디언 로직 */
-    .sub ul, .detail ul{
-        height: 0;
-        overflow: hidden;
-    }
-    .main:has(input[type="radio"]:checked) .sub ul{
-        display: flex;
-        flex-direction: column;
-        height: auto;
-    }
-    .sub:has(input[type="radio"]:checked) .detail ul{
-        display: flex;
-        flex-direction: column;
-        height: auto;
+.sub ul,
+.detail ul {
+    height: 0;
+    overflow: hidden;
+}
 
+.main:has(input[type="radio"]:checked) .sub ul {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+}
+
+.sub:has(input[type="radio"]:checked) .detail ul {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+
+}
+
+/* 아코디언 스타일 */
+.main,
+.sub,
+.detail {
+    padding-top: 5px;
+    padding-bottom: 10px;
+    padding-left: 20px;
+
+    >label {
+        display: block;
+        /* not inline */
+        width: 100%;
+        height: 100%;
     }
-    /* 아코디언 스타일 */
-    .main, .sub, .detail{
-        padding-top: 5px;
-        padding-bottom: 10px;
-        padding-left: 20px;
-        >label{
-            display: block; /* not inline */
+}
+
+.main {
+    border-top: 3px solid var(--base-color-1);
+    padding-left: 0;
+}
+
+/* 마지막 줄 */
+.main li:has(.detail:last-child) {
+    border-bottom: 2px solid var(--base-color-1);
+    padding-bottom: 0;
+}
+
+label:has(input[type="radio"]:checked) {
+    color: var(--main-color-1);
+}
+
+/* 폼 스타일 */
+form {
+
+    /* width: 100%; */
+    span {
+        font-size: var(--font-size-4);
+        font-weight: var(--font-weight-6);
+    }
+
+    label {
+        display: flex;
+        width: auto;
+        flex-wrap: wrap;
+        margin: 0 10px 10px;
+
+        >input {
+            line-height: 20px;
+            border: 1px solid var(--base-color-4);
+            border-radius: 5px;
             width: 100%;
-            height: 100%;
-        }
-    }
-    .main{
-        border-top: 3px solid var(--base-color-1);
-        padding-left: 0;
-    }
-    /* 마지막 줄 */
-    .main li:has(.detail:last-child){
-        border-bottom: 2px solid var(--base-color-1);
-        padding-bottom: 0;
-    }
-    label:has(input[type="radio"]:checked){
-        color: var(--main-color-1);
-    }
+            height: 40px;
+            padding: 5px 10px;
+            font-size: var(--font-size-3);
+            font-weight: var(--font-weight-4);
 
-    /* 폼 스타일 */
-    form{
-        /* width: 100%; */
-        span{
-            font-size: var(--font-size-4);
-            font-weight: var(--font-weight-6);
-        }
-        label{
-            display: flex;
-            width: auto;
-            flex-wrap: wrap;
-            margin: 0 10px 10px;
-            >input{
-                line-height: 20px;
-                border: 1px solid var(--base-color-4);
-                border-radius: 5px;
-                width: 100%;
-                height: 40px;
-                padding: 5px 10px;
-                font-size: var(--font-size-3);
-                font-weight: var(--font-weight-4);
-                &:focus{
-                    border: 1px solid var(--base-color-1);
-                }
+            &:focus {
+                border: 1px solid var(--base-color-1);
             }
         }
-    } /* form */
-
-    .icon\:arrow-down::before {
-        width: 36px;
-        height: 36px;
-        mask-size: 36px 36px;
-        background-color: var(--base-color-1);
-        transition: transform 0.3s ease;
     }
+}
 
-    .icon\:arrow-down:has(input[type="radio"]:checked)::before {
-        transition: transform 0.3s ease;
-        transform: rotate(180deg);
-    }
+/* form */
+
+.icon\:arrow-down::before {
+    width: 36px;
+    height: 36px;
+    mask-size: 36px 36px;
+    background-color: var(--base-color-1);
+    transition: transform 0.3s ease;
+}
+
+.icon\:arrow-down:has(input[type="radio"]:checked)::before {
+    transition: transform 0.3s ease;
+    transform: rotate(180deg);
+}
 </style>

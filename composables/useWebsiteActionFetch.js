@@ -19,10 +19,9 @@ export default function useWebsiteActionFetch() {
                     Authorization: `Bearer ${userDetails.token.value}`,
                 },
             });
-            console.log("actionResponse ", actionResponse);
+            // console.log("actionResponse ", actionResponse);
 
             if (actionResponse && actionResponse.actionDtos) {
-                // `actionDtos`를 기반으로 `iconItem`을 업데이트
                 actionResponse.actionDtos.forEach((actionDto) => {
                     const { action, websiteId } = actionDto;
                     if (actionDto.isAdded) {
@@ -32,7 +31,7 @@ export default function useWebsiteActionFetch() {
                         iconItem.value[action].push(websiteId);
                     }
                 });
-                console.log('액션 목록:', iconItem.value);
+                // console.log('액션 목록:', iconItem.value);
             }
         } catch (error) {
             console.error('북마크 목록 가져오기 중 오류:', error);
@@ -49,13 +48,13 @@ export default function useWebsiteActionFetch() {
                     }
                 });
 
-                console.log('websiteActionResponse.actionDtos', websiteListActionResponse);
+                // console.log("actionDtos:", websiteListActionResponse);
+                // console.log('websiteActionResponse.actionDtos', websiteListActionResponse);
                 if (websiteListActionResponse && websiteListActionResponse.actionDtos) {
 
                     const actionDto = websiteListActionResponse.actionDtos;
                     const likeDto = actionDto.find(dto => dto.action === 'like');
                     const dislikeDto = actionDto.find(dto => dto.action === 'dislike');
-                    const bookmarkDto = actionDto.find(dto => dto.action === 'bookmark');
 
                     // 좋아요/싫어요 수 업데이트
                     likeCount.value = likeDto ? likeDto.likeCount : 0;
@@ -67,8 +66,7 @@ export default function useWebsiteActionFetch() {
                     rate.value = total > 0
                         ? Math.round((likeCount.value / total) * 100) : 0;
                 }
-            } else {
-
+            } else { // 상세 페이지
                 const websiteActionResponse = await $fetch(`${config.public.apiBase}actions/website/${websiteId}`, {
                     headers: {
                         Authorization: `Bearer ${userDetails.token.value}`,
@@ -76,7 +74,7 @@ export default function useWebsiteActionFetch() {
                 });
 
                 if (websiteActionResponse && websiteActionResponse.actionDtos) {
-                    console.log('websiteActionResponse.actionDtos', websiteActionResponse.actionDtos);
+                    // console.log('websiteActionResponse.actionDtos', websiteActionResponse.actionDtos);
 
                     const actionDto = websiteActionResponse.actionDtos;
                     const likeDto = actionDto.find(dto => dto.action === 'like');

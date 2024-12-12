@@ -3,7 +3,7 @@
 // 설정
 const config = useRuntimeConfig();
 // const userDetails = useUserDetails();
-
+const { iconItem, likeCount, dislikeCount, fetchWebsiteActionStatus  } = useWebsiteActionFetch();
 const websiteId = useRoute().params.id;
 
 const isLoading = ref(true);
@@ -18,26 +18,19 @@ const member = ref(null);
 const comments = ref([]);
 const newComment = ref('');
 
-// 좋아요, 싫어요, 저장
-const iconItem = ref({
-    bookmark: [],
-    like: [],
-    dislike: [],
-});
-
 try {
     const websiteResponse = await useCSRFetch(`websites/${websiteId}`);
     if (websiteResponse) {
         website.value = websiteResponse;
-        console.log("websiteResponse ", websiteResponse);
-        console.log("website.member.id", website.value.member.id);
+        // console.log("websiteResponse ", websiteResponse);
+        // console.log("website.member.id", website.value.member.id);
     }
     const memberResponse = await useCSRFetch(`member/profile/${website.value.member.id}`, {
     });
 
     if (memberResponse) {
         member.value = memberResponse;
-        console.log("memberResponse", memberResponse);
+        // console.log("memberResponse", memberResponse);
     }
 } catch (err) {
     error.value = "데이터를 불러오는 중 오류가 발생했습니다.";
@@ -45,6 +38,9 @@ try {
 } finally {
     isLoading.value = false;
 }
+onMounted(async() =>{
+    await fetchWebsiteActionStatus(websiteId);
+});
 
 </script>
 
@@ -98,13 +94,13 @@ try {
                         <!-- 좋아요 버튼 -->
                         <button type="button" class="btn icon:font-1" style="padding: 0;"
                             :class="iconItem.like && iconItem.like.includes(websiteId) ? 'icon:liked' : 'icon:like'">
-                            {{ 10 }}
+                            {{ likeCount }}
                         </button>
                     </li>
                         <!-- 싫어요 버튼 -->
                         <button type="button" class="btn icon:font-1" style="padding: 0;"
                             :class="iconItem.dislike && iconItem.dislike.includes(websiteId) ? 'icon:disliked' : 'icon:dislike'">
-                            {{ 10 }}
+                            {{ dislikeCount }}
                         </button>
                 </ul>
             </nav>
