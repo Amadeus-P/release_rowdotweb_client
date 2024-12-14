@@ -5,7 +5,7 @@ const websiteId = Number(useRoute().params.id); // 문자열 "1" 을 숫자 1로
 
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { iconItem, likeCount, dislikeCount, fetchWebsiteActionStatus } = useWebsiteActionFetch();
+const { iconItem, likeCount, dislikeCount, fetchMemberActionStatus, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
 const isLoading = ref(true);
 const error = ref(null);
@@ -36,7 +36,7 @@ try {
     const memberResponse = await useCSRFetch(`member/websites/${website.value.member.id}`);
     if (memberResponse) {
         member.value = memberResponse;
-        // console.log("memberResponse", memberResponse);
+        console.log("memberResponse", memberResponse);
     }
 } catch (err) {
     error.value = "데이터를 불러오는 중 오류가 발생했습니다.";
@@ -89,11 +89,11 @@ const actionHandler = async (memberId, websiteId, type) => {
             },
         });
         if (type == 'like') {
-            // console.log(`좋아요 상태 업데이트 완료: ${websiteId}`, response.message);
+            console.log(`좋아요 상태 업데이트 완료: ${websiteId}`, response.message);
         } else if (type == 'dislike') {
-            // console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
+            console.log(`싫어요 상태 업데이트 완료: ${websiteId}`, response.message);
         }
-
+        
         await fetchWebsiteActionStatus(websiteId);
 
     } catch (error) {
@@ -105,30 +105,31 @@ function getLikeCount(websiteId) {
     return dto ? dto.likeCount || 0 : 0;
 }
 onMounted(async () => {
-    await fetchWebsiteActionStatus(websiteId);
     try {
-        // 회원의 액션 정보를 불러옴
-        const actionResponse = await useCSRFetch(`actions/member/${userDetails.id.value}`, {
-            headers: {
-                Authorization: `Bearer ${userDetails.token.value}`,
-            },
-        });
-        // console.log("actionResponse ", actionResponse);
+        await fetchWebsiteActionStatus(websiteId);
+        await fetchMemberActionStatus()
+        // // 회원의 액션 정보를 불러옴
+        // const actionResponse = await useCSRFetch(`actions/member`, {
+        //     headers: {
+        //         Authorization: `Bearer ${userDetails.token.value}`,
+        //     },
+        // });
+        // // console.log("actionResponse ", actionResponse);
 
-        if (actionResponse && actionResponse.actionDtos) {
-            actionDtos.value = actionResponse.actionDtos;
-            // console.log('actionDtos.value', actionDtos.value);
+        // if (actionResponse && actionResponse.memberActionDtos) {
+        //     actionDtos.value = actionResponse.memberActionDtos;
+        //     console.log('actionDtos.value', actionDtos.value);
 
-            actionDtos.value.forEach((actionDto) => {
-                const { action, websiteId } = actionDto;
-                if (actionDto.isAdded) {
-                    if (!iconItem.value[action]) {
-                        iconItem.value[action] = [];
-                    }
-                    iconItem.value[action].push(websiteId);
-                }
-            });
-        }
+        //     actionDtos.value.forEach((actionDto) => {
+        //         const { action, websiteId } = actionDto;
+        //         if (actionDto.isAdded) {
+        //             if (!iconItem.value[action]) {
+        //                 iconItem.value[action] = [];
+        //             }
+        //             iconItem.value[action].push(websiteId);
+        //         }
+        //     });
+        // }
     } catch (error) {
         console.error('액션 상태 목록 가져오기 중 오류:', error);
     }

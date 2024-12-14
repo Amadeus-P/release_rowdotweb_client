@@ -53,12 +53,10 @@ const localLoginHandler = async () => {
         userInfo.roles.map(role => { console.log(role, role.authority) });
         console.log("로그인 완료", userInfo);
         console.log("로그인 완료", userDetails);
-        console.log("query.returnURL", query.returnURL);
 
-        // 미들웨어에서 returnURL에 값이 담겨오는지 확인
-        const returnURL = useRoute().query.returnURL || (userInfo.roles.includes('ROLE_MEMBER') ? '/websites' : '/member/websites');
-        console.log("returnURL", returnURL);
+        const returnURL = useRoute().query.returnURL || "/";
         return navigateTo(returnURL);
+
     } catch (error) {
         console.log(error);
     }

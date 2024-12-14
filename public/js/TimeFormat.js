@@ -1,6 +1,6 @@
 // 상대적인 시간 포맷 함수
-export class FormatRelativeTime {
-    formatRelativeTime (date) {
+export class TimeFormat {
+  timeFormat (date) {
         const now = new Date();
         const diff = now - new Date(date);
       
