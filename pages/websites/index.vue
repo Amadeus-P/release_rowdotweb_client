@@ -1,11 +1,11 @@
 <script setup>
 import { onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref, watchEffect } from 'vue';
-import { FormatRelativeTime } from '~/public/js/formatRelativeTime';
+import { TimeFormat } from '~/public/js/TimeFormat';
 
 // 설정
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { rate, fetchWebsiteActionStatus } = useWebsiteActionFetch();
+const { websiteActionsMap, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
 // 동적 CSS 변수
 const selectedMainCategory = ref("");
@@ -57,22 +57,25 @@ watchEffect(() => {
     // console.log("대분류", mainCategories.value);
 });
 
-// 상대 시간으로 변환된 데이터
-const formatRelativeTime = new FormatRelativeTime()
-const filteredWebsiteWithTime = computed(() => {
+// 시간 포맷
+const timeFormat = new TimeFormat()
+const createdWebsite = computed(() => {
     if (Array.isArray(filteredWebsite.value)) {
         return filteredWebsite.value.map((w) => ({
             ...w,
-            relativeTime: formatRelativeTime.formatRelativeTime(w.regDate),
+            relativeTime: timeFormat.timeFormat(w.regDate),
         }))
     }
     if (filteredWebsite.value && typeof filteredWebsite.value === 'object') {
         return Object.values(filteredWebsite.value).map((w) => ({
             ...w,
-            relativeTime: formatRelativeTime.formatRelativeTime(w.regDate),
+            relativeTime: timeFormat.timeFormat(w.regDate),
         }));
     }
 });
+console.log('createdWebsite: ', createdWebsite);
+
+
 const fetchCategory = async (categoryId, type) => {
     try {
         // CRS response 
@@ -108,7 +111,7 @@ const selectAllMainHandler = async (name) => {
     if (name === "전체") {
 
  
-        const websitesResponse = await useCSRFetch("member/websites");
+        const websitesResponse = await useCSRFetch("websites");
         const websiteIds = websitesResponse.websiteListDtos.map((w) => w.id);
         // console.log('websiteIds', websiteIds);
         await fetchWebsiteActionStatus(websiteIds);
@@ -339,10 +342,10 @@ onUpdated(() => {
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
-                            <div class="btn icon:liked">
-                                <span>{{ rate }}%</span>
+                            <div class="btn icon:like">
+                                <span style="margin-left: 3px;">{{ websiteActionsMap[w.id].rate }}%</span>
                             </div>
-                            <div class="btn icon:views">
+                            <div class="btn icon:views" style="margin-left: 3px;">
                                 <span>1만</span>
                             </div>
                         </li>
@@ -352,7 +355,7 @@ onUpdated(() => {
 
             <section class="website-list" v-else>
                 <h1>웹사이트 목록</h1>
-                <div v-for="w in filteredWebsiteWithTime" :key="w.id" class="website-card"
+                <div v-for="w in createdWebsite" :key="w.id" class="website-card"
                     style="position: relative; overflow: hidden;">
                     <NuxtLink :to="`/websites/${w.id}`">
                         <img class="website-img"
@@ -370,11 +373,11 @@ onUpdated(() => {
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
-                            <div class="btn icon:liked">
-                                <span>{{ rate }}%</span>
+                            <div class="btn icon:like">
+                                <span  style="margin-left: 3px;">{{ websiteActionsMap[w.id].rate }}%</span>
                             </div>
                             <div class="btn icon:views">
-                                <span>1만</span>
+                                <span style="margin-left: 3px;">1만</span>
                             </div>
                         </li>
                     </ul>
@@ -393,7 +396,7 @@ onUpdated(() => {
         </ul>
     </section>
 
-    <FooterMenu home="/websites" />
+    <FooterMenu/>
 
 </template>
 

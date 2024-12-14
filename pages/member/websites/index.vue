@@ -1,11 +1,11 @@
 <script setup>
 import { onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref, watchEffect } from 'vue';
-import { FormatRelativeTime } from '~/public/js/formatRelativeTime';
+import { TimeFormat } from '~/public/js/TimeFormat';
 
 // 설정
 const config = useRuntimeConfig();
 const userDetails = useUserDetails();
-const { iconItem, rate, fetchMemberBookmarkStatus, fetchWebsiteActionStatus } = useWebsiteActionFetch();
+const { iconItem, websiteActionsMap, fetchMemberActionStatus, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
 // 동적 CSS 변수
 const selectedMainCategory = ref("");
@@ -42,29 +42,13 @@ const { data: categoryData } = await useSSRFetch("categories", {
 });
 // 데이터 감시(사이드 이펙트)
 watchEffect(() => {
+
     if (categoryData.value) {
         categories.value = categoryData.value.categoryListDtos;
         // console.log("최신 카테고리: ", categories.value);
     }
     mainCategories.value = categories.value;
     // console.log("대분류", mainCategories.value);
-});
-
-// 시간 포맷
-const formatRelativeTime = new FormatRelativeTime()
-const filteredWebsiteWithTime = computed(() => {
-    if (Array.isArray(filteredWebsite.value)) {
-        return filteredWebsite.value.map((w) => ({
-            ...w,
-            relativeTime: formatRelativeTime.formatRelativeTime(w.regDate),
-        }))
-    }
-    if (filteredWebsite.value && typeof filteredWebsite.value === 'object') {
-        return Object.values(filteredWebsite.value).map((w) => ({
-            ...w,
-            relativeTime: formatRelativeTime.formatRelativeTime(w.regDate),
-        }));
-    }
 });
 
 // 카테고리 목록 가져오기
@@ -103,20 +87,10 @@ const selectAllMainHandler = async (name) => {
     if (name === "전체") {
 
         const websitesResponse = await useCSRFetch("member/websites");
-        console.log("websitesResponse.websiteListDtos", websitesResponse);
+        // console.log("websitesResponse.websiteListDtos", websitesResponse);
 
+        await pageClickHandler();
         // 페이지 정보
-        pageNumbers.value = websitesResponse.pages;
-        startNum.value = websitesResponse.pages[0];
-        totalPages.value = websitesResponse.totalPages;
-        hasPreviousPage.value = websitesResponse.hasPreviousPage;
-        hasNextPage.value = websitesResponse.hasNextPage;
-        // console.log("페이지 정보: ",
-        //     "페이지 수", pageNumbers.value,
-        //     "시작 번호", startNum.value,
-        //     "총 페이지 수", totalPages.value,
-        //     "이전 페이지", hasPreviousPage.value,
-        //     "다음 페이지", hasNextPage.value);
 
         const websiteIds = websitesResponse.websiteListDtos.map((w) => w.id);
         // console.log('websitesResponse.websiteListDtos.id', websitesResponse.websiteListDtos.map(w => w.id));
@@ -143,16 +117,10 @@ const fetchWebsites = async (detailCategoryId) => {
             console.error("웹사이트 데이터가 비어있습니다.");
             return;
         }
-
-        // 페이지 정보
-        pageNumbers.value = websitesResponse.pages;
-        startNum.value = websitesResponse.pages[0];
-        totalPages.value = websitesResponse.totalPages;
-        hasPreviousPage.value = websitesResponse.hasPreviousPage;
-        hasNextPage.value = websitesResponse.hasNextPage;
+        await pageClickHandler();
 
         const websiteIds = websitesResponse.websiteListDtos.map(website => website.id);
-        // console.log("필터링한 웹사이트 ID 목록:", websiteIds);
+        console.log("필터링한 웹사이트 ID 목록:", websiteIds);
         await fetchWebsiteActionStatus(websiteIds);
 
         filteredWebsite.value = websitesResponse.websiteListDtos;
@@ -163,7 +131,7 @@ const fetchWebsites = async (detailCategoryId) => {
     }
 };
 
-// 검색
+// 검색 결과
 const searchHandler = async () => {
     if (!keyWord.value.trim()) {
         // 빈 입력 방지
@@ -196,6 +164,24 @@ const searchHandler = async () => {
         isLoading.value = false;
     }
 };
+
+// 시간 포맷
+const timeFormat = new TimeFormat()
+const createdWebsite = computed(() => {
+    if (Array.isArray(filteredWebsite.value)) {
+        return filteredWebsite.value.map((w) => ({
+            ...w,
+            relativeTime: timeFormat.timeFormat(w.regDate),
+        }))
+    }
+    if (filteredWebsite.value && typeof filteredWebsite.value === 'object') {
+        return Object.values(filteredWebsite.value).map((w) => ({
+            ...w,
+            relativeTime: timeFormat.timeFormat(w.regDate),
+        }));
+    }
+});
+console.log('createdWebsite: ', createdWebsite);
 
 // 북마크 추천 비추천 등등
 const actionHandler = async (memberId, websiteId, type) => {
@@ -248,7 +234,7 @@ const actionHandler = async (memberId, websiteId, type) => {
         //          const errorText = await response.text();
         //          throw new Error(`서버 오류: ${response.status} ${response.statusText}: ${errorText}`);
         //      }
-        console.log(`액션 상태 업데이트 완료: ${websiteId}`, response.message);
+        // console.log(`액션 상태 업데이트 완료: ${websiteId}`, response.message);
     } catch (error) {
         console.error('액션 상태 업데이트 중 오류:', error);
     }
@@ -287,15 +273,6 @@ const pageClickHandler = async (page) => {
     } catch (error) {
         console.error("페이지 로드 중 오류 발생:", error);
     }
-
-    if (page < 1) {
-        alert("이전 페이지가 없습니다.");
-        return;
-    }
-    if (totalPages < page) {
-        alert("다음 페이지가 없습니다");
-        return;
-    }
 }
 
 // favicon URL 가져오기
@@ -312,13 +289,17 @@ onBeforeMount(() => {
 });
 onMounted(async () => {
     // console.log("onMounted");
+
+    // 새로고침 시 상태 유지가 초기화 되기 때문에 매번 불러와야한다.
+    // 호출 순서에 따라 제대로 적용되지 않을 수 있으니 
+    await fetchMemberActionStatus();
+    // console.log('iconItem after fetchMemberActionStatus:', iconItem.value);
     // "전체" 카테고리를 자동으로 선택하도록 설정
     // console.log('selectedMainCategory:', selectedMainCategory.value);
-    if (mainCategories.value.length > 0) {
+    if (mainCategories.value.length > 0 && selectedMainCategory.value === "") {
         selectAllMainHandler(mainCategories.value[0].name);
     }
 
-    await fetchMemberBookmarkStatus();
 });
 onBeforeUpdate(() => {
     // console.log("onBeforeUpdate");
@@ -342,7 +323,7 @@ onUpdated(() => {
             <NuxtLink to="/member/websites">
                 <h1 class="" style="display: flex; flex-shrink: 0;">
                     <!-- <img style="width: 60px; " src="/img/logo/watercolor-4116932_1280.png" alt="로고"> -->
-                    <span style="font-size: 20px; font-weight: 600;">ROWDOTWEB</span>
+                    <span style="font-size: 20px; font-weight: 600;">RAWDOTWEB</span>
                 </h1>
             </NuxtLink>
             <nav>
@@ -466,10 +447,10 @@ onUpdated(() => {
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
-                            <div class="btn icon:like">
-                                <span>{{ rate }}%</span>
+                            <div class="btn icon:like" style="margin-left: 3px;">
+                                <span>{{ websiteActionsMap[w.id].rate }}%</span>
                             </div>
-                            <div class="btn icon:views">
+                            <div class="btn icon:views" style="margin-left: 3px;">
                                 <span>1만</span>
                             </div>
                         </li>
@@ -480,7 +461,7 @@ onUpdated(() => {
             <!-- 검색 결과 없음 -->
             <section class="website-list" v-else>
                 <h1>웹사이트 목록</h1>
-                <div v-for="w in filteredWebsiteWithTime" :key="w.id" class="website-card"
+                <div v-for="w in createdWebsite" :key="w.id" class="website-card"
                     style="position: relative; overflow: hidden;">
                     <NuxtLink :to="`/member/websites/${w.id}`">
                         <img class="website-img"
@@ -491,7 +472,9 @@ onUpdated(() => {
                         :class="iconItem.bookmark && iconItem.bookmark.includes(w.id) ? 'icon:bookmark-added' : 'icon:bookmark-add'"
                         @click="actionHandler(userDetails.id, w.id, 'bookmark')">저장
                     </button>
-
+                    <!-- <span>현재 웹사이트 ID: {{ w.id }}</span>
+                    <span>iconItem 배열: {{ JSON.stringify(iconItem) }}</span>
+                    <span>includes 결과: {{ iconItem.bookmark.includes(w.id) }}</span> -->
                     <ul class="website-content">
                         <li style="display: flex; justify-content: space-between;">
                             <span class="text-overflow"
@@ -502,11 +485,11 @@ onUpdated(() => {
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
-                            <div class="btn icon:liked">
-                                <span>{{ rate }}%</span>
+                            <div class="btn icon:like">
+                                <span style="margin-left: 3px;">{{ websiteActionsMap[w.id].rate }}%</span>
                             </div>
                             <div class="btn icon:views">
-                                <span>1만</span>
+                                <span style="margin-left: 3px;">1만</span>
                             </div>
                         </li>
                     </ul>
@@ -538,7 +521,7 @@ onUpdated(() => {
         </ul>
     </section>
 
-    <FooterMenu home="/websites" />
+    <FooterMenu/>
 
 </template>
 

@@ -1,10 +1,5 @@
 <script setup>
-    const props = defineProps({
-        home: {
-            type: String,
-            default: '/'  // 기본값은 루트 경로
-        }
-    });
+
 </script>
 
 <template>
@@ -13,7 +8,7 @@
             <h1>하단메뉴</h1>
             <ul class="footer-menu">
                 <li>
-                    <NuxtLink v-bind:to="home" class="icon:home icon:text-bottom icon:font-1">
+                    <NuxtLink to="/" class="icon:home icon:text-bottom icon:font-1">
                         <span class="text">홈</span>
                     </NuxtLink>
                 </li>
