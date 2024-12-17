@@ -7,10 +7,20 @@ const config = useRuntimeConfig();
 const userDetails = useUserDetails();
 const { iconItem, websiteActionsMap, fetchMemberActionStatus, fetchWebsiteActionStatus } = useWebsiteActionFetch();
 
-// 동적 CSS 변수
-const selectedMainCategory = ref("");
 
-const isLoading = ref(false);
+// 비동기 요청 데이터를 담기 위한 변수
+
+// 카테고리
+const mainCategories = ref([]);
+const subCategories = ref([]);
+const detailCategories = ref([]);
+// 웹사이트
+const filteredWebsite = ref([]); // 화면에 나올 웹사이트 목록
+
+
+// 동적 CSS 변수
+const curruntCategory = ref("");
+
 const error = ref(null);
 
 // 웹사이트 페이지 정보
@@ -19,42 +29,56 @@ const totalPages = ref(0);
 const hasPreviousPage = ref(false);
 const hasNextPage = ref(false);
 const pageNumbers = ref([]);
-const currentPage = ref(parseInt(useRoute().query.page) || 1); // 현재 페이지
+const currentPage = ref(parseInt(useRoute().query.page || 1)); // 현재 페이지
 
 // 검색
 const keyWord = ref('');
 const searchResults = ref([]); // 검색 결과를 저장할 배열
 
-// 카테고리
-const mainCategories = ref([]);
-const subCategories = ref([]);
-const detailCategories = ref([]);
-const filteredWebsite = ref([]); // 화면에 나올 웹사이트 목록
 
-//  fetch 데이터 저장용
-const categories = ref([]);
+// 비동기 호출
+const isLoading = ref(false); // 중복 호출 방지
 
-// SSR {response}
-const { data: categoryData } = await useSSRFetch("categories", {
+// 데이터 감시: 데이터 변화를 알아차림
+watch(() => {
+
+})
+watchEffect(() => {
+
+});
+
+// SSR(초기 데이터)
+const { data: categoryResponse } = await useSSRFetch("categories", {
     params: {
         parentId: null
     }
 });
-// 데이터 감시(사이드 이펙트)
-watchEffect(() => {
-
-    if (categoryData.value) {
-        categories.value = categoryData.value.categoryListDtos;
-        // console.log("최신 카테고리: ", categories.value);
-    }
-    mainCategories.value = categories.value;
+if (categoryResponse.value) {
+    mainCategories.value = categoryResponse.value.categoryListDtos;
     // console.log("대분류", mainCategories.value);
-});
+}
+const fetchWebsites = async (name) => {
+    curruntCategory.value = name;
+    // console.log('curruntCategory:', curruntCategory.value);
+    // name = mainCategories.value[0].name
+    if (name === "전체") {
+        const apiEndpoint = userDetails.token.value 
+            ? "member/websites" 
+            : "websites";
+        // console.log('apiEndpoint: ', apiEndpoint);
+        const { data: websitesResponse } = await useSSRFetch(apiEndpoint);
+        // console.log("websitesResponse.value", websitesResponse.value);
+        filteredWebsite.value = websitesResponse.value.websiteListDtos;
+        // console.log("filteredWebsite.value: ", filteredWebsite.value);
 
-// 카테고리 목록 가져오기
-const fetchCategory = async (categoryId, type) => {
+        const websiteIds = websitesResponse.value.websiteListDtos.map((w) => w.id);
+        await fetchWebsiteActionStatus(websiteIds);
+    }
+}
+
+// CSR(사용자 요청 시 데이터)
+const fetchSelectedCategory = async (categoryId, categoryType) => {
     try {
-        // CRS response 
         const categoryResponse = await useCSRFetch("categories", {
             params: {
                 parentId: categoryId
@@ -64,49 +88,29 @@ const fetchCategory = async (categoryId, type) => {
             console.error("카테고리 데이터가 비어있습니다.");
             return;
         }
-        if (type === 'sub') {
+        if (categoryType === 'sub') {
             detailCategories.value = [];
             subCategories.value = categoryResponse.categoryListDtos;
-            // console.log("중분류 데이터: ", subCategories.value);
-
-        } else if (type === 'detail') {
+            // console.log("중분류: ", subCategories.value);
+        } else if (categoryType === 'detail') {
             detailCategories.value = categoryResponse.categoryListDtos;
-            // console.log("소분류 데이터: ", detailCategories.value);
+            // console.log("소분류: ", detailCategories.value);
         } else {
-            console.error("유효하지 않은 type: ", type);
+            console.error("유효하지 않은 categoryType: ", categoryType);
         }
     } catch (error) {
-        console.error("데이터 가져오기 중 오류 발생: ", error);
+        console.error("fetchSelectedCategory 중 오류 발생: ", error);
     }
 };
 
-// 전체 카테고리일 때
-const selectAllMainHandler = async (name) => {
-    selectedMainCategory.value = name;
-    // console.log('selectedMainCategory:', selectedMainCategory.value);
-    if (name === "전체") {
-
-        const websitesResponse = await useCSRFetch("member/websites");
-        // console.log("websitesResponse.websiteListDtos", websitesResponse);
-
-        await pageClickHandler();
-        // 페이지 정보
-
-        const websiteIds = websitesResponse.websiteListDtos.map((w) => w.id);
-        // console.log('websitesResponse.websiteListDtos.id', websitesResponse.websiteListDtos.map(w => w.id));
-        // console.log('websiteIds', websiteIds);
-        await fetchWebsiteActionStatus(websiteIds);
-        // console.log('rate', rate.value);
-
-        filteredWebsite.value = websitesResponse.websiteListDtos;
-        console.log("전체 웹사이트 데이터: ", filteredWebsite.value);
-    }
-}
-
 // 전체가 아닐 때
-const fetchWebsites = async (detailCategoryId) => {
+const fetchWebsitesByCategory = async (detailCategoryId) => {
     try {
-        const websitesResponse = await useCSRFetch("member/websites", {
+        const apiEndpoint = userDetails.token.value 
+            ? "member/websites" 
+            : "websites";
+
+        const websitesResponse = await useCSRFetch(apiEndpoint, {
             params: {
                 categoryId: detailCategoryId
             }
@@ -117,15 +121,16 @@ const fetchWebsites = async (detailCategoryId) => {
             console.error("웹사이트 데이터가 비어있습니다.");
             return;
         }
-        await pageClickHandler();
 
+        
         const websiteIds = websitesResponse.websiteListDtos.map(website => website.id);
-        console.log("필터링한 웹사이트 ID 목록:", websiteIds);
+        // console.log("필터링한 웹사이트 ID 목록:", websiteIds);
         await fetchWebsiteActionStatus(websiteIds);
-
+        
         filteredWebsite.value = websitesResponse.websiteListDtos;
         // console.log(`소분류 ID ${detailCategoryId}의 웹사이트 데이터:`, filteredWebsite.value);
-
+        
+        await pageClickHandler(currentPage.value);
     } catch (error) {
         console.error("웹사이트 데이터 가져오기 중 오류 발생: ", error);
     }
@@ -164,24 +169,6 @@ const searchHandler = async () => {
         isLoading.value = false;
     }
 };
-
-// 시간 포맷
-const timeFormat = new TimeFormat()
-const createdWebsite = computed(() => {
-    if (Array.isArray(filteredWebsite.value)) {
-        return filteredWebsite.value.map((w) => ({
-            ...w,
-            relativeTime: timeFormat.timeFormat(w.regDate),
-        }))
-    }
-    if (filteredWebsite.value && typeof filteredWebsite.value === 'object') {
-        return Object.values(filteredWebsite.value).map((w) => ({
-            ...w,
-            relativeTime: timeFormat.timeFormat(w.regDate),
-        }));
-    }
-});
-console.log('createdWebsite: ', createdWebsite);
 
 // 북마크 추천 비추천 등등
 const actionHandler = async (memberId, websiteId, type) => {
@@ -243,16 +230,18 @@ const actionHandler = async (memberId, websiteId, type) => {
 // 페이지네이션
 const pageClickHandler = async (page) => {
     if (page < 1 || page > totalPages.value) return;
+    console.log('page: ', page);
+
     currentPage.value = page;
-    // console.log("page", page, totalPages);
+    console.log("currentPage", currentPage.value);
 
     try {
         const websitesResponse = await useCSRFetch("member/websites", {
             params: {
                 page: page,
-                size: 30,
-                ...(selectedMainCategory.value !== "전체" && {
-                    categoryId: selectedMainCategory.value, // 선택된 카테고리가 있으면 추가
+                size: 4,
+                ...(curruntCategory.value !== "전체" && {
+                    categoryId: curruntCategory.value, // 선택된 카테고리가 있으면 추가
                 }),
             },
         });
@@ -275,6 +264,26 @@ const pageClickHandler = async (page) => {
     }
 }
 
+// 시간 포맷
+const timeFormat = new TimeFormat()
+const createdWebsite = computed(() => {
+    if (Array.isArray(filteredWebsite.value)) {
+        return filteredWebsite.value.map((w) => ({
+            ...w,
+            relativeTime: timeFormat.timeFormat(w.regDate),
+        }))
+    }
+    if (filteredWebsite.value && typeof filteredWebsite.value === 'object') {
+        return Object.values(filteredWebsite.value).map((w) => ({
+            ...w,
+            relativeTime: timeFormat.timeFormat(w.regDate),
+        }));
+    }
+});
+// console.log('createdWebsite: ', createdWebsite);
+
+
+
 // favicon URL 가져오기
 const getFavicon = (url) => {
     return `https://www.google.com/s2/favicons?domain=${url}&sz=64`;
@@ -289,15 +298,11 @@ onBeforeMount(() => {
 });
 onMounted(async () => {
     // console.log("onMounted");
-
-    // 새로고침 시 상태 유지가 초기화 되기 때문에 매번 불러와야한다.
-    // 호출 순서에 따라 제대로 적용되지 않을 수 있으니 
+    await fetchWebsites();
     await fetchMemberActionStatus();
-    // console.log('iconItem after fetchMemberActionStatus:', iconItem.value);
     // "전체" 카테고리를 자동으로 선택하도록 설정
-    // console.log('selectedMainCategory:', selectedMainCategory.value);
-    if (mainCategories.value.length > 0 && selectedMainCategory.value === "") {
-        selectAllMainHandler(mainCategories.value[0].name);
+    if (mainCategories.value.length > 0) {
+        fetchWebsites(mainCategories.value[0].name);
     }
 
 });
@@ -369,8 +374,8 @@ onUpdated(() => {
                     <li style="display: flex; align-items:center; justify-content: space-evenly; "
                         v-for="c in mainCategories" :key="c.id">
                         <label class="icon:font-2 icon:text-bottom"
-                            :class="[`icon:${c.iconName}`, { 'activeMain': c.name === selectedMainCategory }]"
-                            @click="fetchCategory(c.id, 'sub'); selectAllMainHandler(c.name);">
+                            :class="[`icon:${c.iconName}`, { 'activeMain': c.name === curruntCategory }]"
+                            @click="fetchSelectedCategory(c.id, 'sub'); fetchWebsites(c.name);">
                             <span>{{ c.name }}</span>
                             <input type="radio" name="main-category">
                         </label>
@@ -381,7 +386,7 @@ onUpdated(() => {
                 <h1>중분류 카테고리</h1>
                 <ul class="sub-category">
                     <li style="display: flex;" v-for="c in subCategories" :key="c.id">
-                        <label class="btn btn:square" @click="fetchCategory(c.id, 'detail')">
+                        <label class="btn btn:square" @click="fetchSelectedCategory(c.id, 'detail')">
                             <span>{{ c.name }}</span>
                             <input type="radio" name="sub-category">
                         </label>
@@ -392,7 +397,7 @@ onUpdated(() => {
                 <h1>소분류 카테고리</h1>
                 <ul class="detail-category">
                     <li style="display: flex;" v-for="c in detailCategories" :key="c.id">
-                        <label class="btn btn:round" @click="fetchWebsites(c.id)">
+                        <label class="btn btn:round" @click="fetchWebsitesByCategory(c.id)">
                             <span>{{ c.name }}</span>
                             <input type="radio" name="detail-category-languege">
                         </label>
@@ -427,9 +432,8 @@ onUpdated(() => {
                 <div v-for="w in searchResults" :key="w.id" class="website-card"
                     style="position: relative; overflow: hidden;">
                     <NuxtLink :to="`/member/websites/${w.id}`">
-                        <img class="website-img"
-                            :src="w.images?.length ? `${config.public.apiBase}website/${w.images[0].src}` : '/img/website/default.png'"
-                            alt="대표 이미지" />
+                        <img class="website-img" alt="대표 이미지"
+                            :src="w.images?.length ? `${config.public.apiBase}website/${w.images[0].src}` : '/img/website/default.png'" />
                     </NuxtLink>
                     <button type="button" class="btn icon:font-1 text-hidden" style="padding: 0;"
                         :class="iconItem.bookmark && iconItem.bookmark.includes(w.id) ? 'icon:bookmark-added' : 'icon:bookmark-add'"
@@ -439,19 +443,18 @@ onUpdated(() => {
                     <ul class="website-content">
                         <li style="display: flex; justify-content: space-between;">
                             <span class="text-overflow"
-                                style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">
-                                {{ w.title }}
-                            </span>
+                                style="font-size: var(--font-size-4); font-weight: var(--font-weight-6);">{{ w.title
+                                }}</span>
                         </li>
                         <li style="display: flex;">
                             <div class="btn">
                                 {{ w.relativeTime }}
                             </div>
-                            <div class="btn icon:like" style="margin-left: 3px;">
-                                <span>{{ websiteActionsMap[w.id].rate }}%</span>
+                            <div class="btn icon:like">
+                                <span style="margin-left: 3px;">{{ websiteActionsMap[w.id].rate }}%</span>
                             </div>
-                            <div class="btn icon:views" style="margin-left: 3px;">
-                                <span>1만</span>
+                            <div class="btn icon:views">
+                                <span style="margin-left: 3px;">1만</span>
                             </div>
                         </li>
                     </ul>
@@ -475,6 +478,7 @@ onUpdated(() => {
                     <!-- <span>현재 웹사이트 ID: {{ w.id }}</span>
                     <span>iconItem 배열: {{ JSON.stringify(iconItem) }}</span>
                     <span>includes 결과: {{ iconItem.bookmark.includes(w.id) }}</span> -->
+                    <span>{{ websiteActionsMap }}</span>
                     <ul class="website-content">
                         <li style="display: flex; justify-content: space-between;">
                             <span class="text-overflow"
@@ -509,7 +513,7 @@ onUpdated(() => {
             </li>
             <li v-for="p in pageNumbers" :key="p">
                 <RouterLink class="pager" :to="`/member/websites?page=${p}`"
-                    :class="{ 'activePager': p == useRoute().query.page }" @click.prevent="pageClickHandler(p)">{{ p }}
+                    :class="{ 'activePager': currentPage == p }" @click.prevent="pageClickHandler(p)">{{ p }}
                 </RouterLink>
             </li>
             <li>
@@ -520,8 +524,17 @@ onUpdated(() => {
             </li>
         </ul>
     </section>
+    <section>
+        <ul>
+            <li v-for="p in pageNumbers" :key="p">
+                <RouterLink :to="``">
 
-    <FooterMenu/>
+                </RouterLink>
+            </li>
+        </ul>
+    </section>
+
+    <FooterMenu />
 
 </template>
 
@@ -548,7 +561,6 @@ onUpdated(() => {
         width: 44px;
         height: 25px;
 
-        &:active,
         &.activePager {
             border: none;
             color: var(--base-color-white);

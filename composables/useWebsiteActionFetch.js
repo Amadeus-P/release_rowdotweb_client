@@ -142,7 +142,6 @@ export default function useWebsiteActionFetch() {
         iconItem,
         likeCount,
         dislikeCount,
-        rate,
         websiteActionsMap,
         fetchMemberActionStatus,
         fetchWebsiteActionStatus,
